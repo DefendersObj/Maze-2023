@@ -3,15 +3,10 @@
 
 #include <MPU6050.h>           /*!< Inclusão da biblioteca do MPU */
 #include <Adafruit_MLX90614.h> /*!< Inclusão da biblioteca do MLX */
-#include "Ultrassonico.hpp"  
+#include "Ultrassonico.hpp"    /*!< Inclusão da classe dos Ultrassonicos */
 
-
-#define MAX_DISTANCE 200 /*!<Distancia Maxima (em cm).*/
-#define TIMEOUT 50000    /*!<Tempo maximo de espera para o retorno do pulso do ultrassonico.*/
 #define OFFSET 0.91      //0.88 /*!< Valor de correcao para MPU */
 #define DIMENSIONAL 1.014  // 6.8  /*!< Constante de correcao para MPU*/
-#define CIR_RODA 20.0    /*!< Circunferencia da roda*/
-#define NUM_ENCODER 20.0 /*!< Numero de ranhuras no Encode*/
 
 MPU6050 gyroscope;
 
@@ -29,7 +24,7 @@ private:
 
   float ultima_passagem = 0.0;  //Usada na medicao do tempo
   float angulo_z = 0.0;         // Angulo atual
-  float tempo_atual = 0.0;
+  float tempo_atual = 0.0;        
   float tempo_decorrido = 0.0;
 
   /*!<Retorna intervalo de tempo entre as chamadas*/
@@ -117,12 +112,6 @@ public:
 
   volatile int passos;
   float passos_cm;
-
-  /*!< Inicializa o encoder >*/
-  void begin_enconder() { 
-  }
- 
-
 
   /*!< Zera todos parametros para o Encoder >*/
   bool zerar_encoder() {

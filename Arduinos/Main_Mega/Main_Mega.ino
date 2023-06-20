@@ -32,6 +32,7 @@ void loop() {
 
 /*!Recebe valores dos motores atraves da porta Serial*/
 void recebe_serial() {
+  /*Procura o marcador de inicio de pacote 'i'*/
   if (Serial2.available() && Serial2.read() == 'i') {
     char buff[32];
     byte buff_control = 0;
@@ -39,22 +40,23 @@ void recebe_serial() {
 
     while (1) {
       if (Serial2.available()) {
+        /*Salva dados recebidos do Arduino no Buffer*/
         buff[buff_control] = Serial2.read();
-        if (buff[buff_control] == 'p') break;
-        if(buff[buff_control] == '\n') data_count++;
-        if (buff[buff_control] == 'i') {buff_control = 0; data_count = 0;}
+        if (buff[buff_control] == 'p') break; // 'p' marca o fim de um pacote
+        if(buff[buff_control] == '\n') data_count++; // '\n' marca o fim de um numero
+        if (buff[buff_control] == 'i') {buff_control = 0; data_count = 0;} // Caso receba 'i' durante um pacote reiniciamos
         buff_control++;
-        if (buff_control >= 30)break;
+        if (buff_control >= 30)break; // Limite do buffer
       }
     }
 
     if (buff_control < 30 && data_count == 4) {
-      Serial2.print('k');
+      Serial2.print('k'); // Echo enviado ao Due
       buff_control = 0;
+      //Concatenamos os chars recebidos em strings
       for (int i = 0; i < 4; i++){
 
         String recebe = "";
-
 
       while (buff[buff_control] != '\n') {
 
@@ -65,45 +67,12 @@ void recebe_serial() {
       potencias[i] = recebe.toInt();
       Serial.println(potencias[i]);
     }
-    motores.potencia(potencias);
     Serial.println("-----------------");
+    //Envio para os motores
+    motores.potencia(potencias);
+    
   }
 }
 
 
-
-
-
-
-
-
-
-
-/*while(Serial2.available()){
-    if(Serial2.read() == 'i')break;
-  }
-  if (Serial2.available()) {
-    
-
-    
-   
-      for (int i = 0; i < 4; i++) {
-
-        String recebe = "";
-        while(!Serial2.available());
-        //Le cada caracter rcebido e concatena eles em uma String
-        while (Serial2.available()) {
-          char a = Serial2.read();
-          if (a == 'i') i = 0;
-          //Serial.println(a);
-          //Serial.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-          if (a == '\n') break;
-          recebe.concat(a);
-          if(!Serial2.available())delay();
-        }
-        potencias[i] = recebe.toInt();
-        Serial.println(potencias[i]);
-      }
-      Serial.println("-----------------");
-    }*/
 }

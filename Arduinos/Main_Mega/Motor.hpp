@@ -24,22 +24,15 @@ private:
 
 public:
 
-  /*! Funcao que coloca todos motores na mesma velocidade, e realiza seus espelhamentos*/
-  void mesma_potencia(int vel, int dif_lado = 0) {
-    //Caso normal da movimentacao
-    int aux[4] = { -(vel - dif_lado), -(vel - dif_lado), (vel + dif_lado), (vel + dif_lado) };
-    potencia(aux);  //E enviado para os motores os valores de correcao
-  }
-
-  /*! Funcao que inicializa todas variaveis e itens nescesarrios para o funcionamento dos motores */
+  /*! Inicializa todas variaveis e itens nescesarrios para o funcionamento dos motores */
   void begin() {
     Serial3.begin(1000000);
     interface.begin(baudrate);
     bool error = false;
 
+    /* Tenta estabelecer conexao com os motores ate conseguir */
     while (!error) {
       // Verifica se foi estabelecida a conexao
-      
       uint8_t status[4] = { motore1.init(),
                             motore2.init(),
                             motord1.init(),
@@ -65,7 +58,7 @@ public:
     motord2.wheelMode();
   }
 
-  /*! Funcao que faz o envio das velocidade individualmente para cada motor*/
+  /*! Faz o envio das velocidade para cada motor*/
   void potencia(int vel[4]) {
     //Filtro para valores erroneos
     for (int i = 0; i < 4; i++) {

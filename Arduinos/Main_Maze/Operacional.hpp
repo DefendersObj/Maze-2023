@@ -40,7 +40,6 @@ public:
 
   /*! Inicializacao dos Motores e Sensores*/
   void begin() {
-    //sensores.begin_enconder();
     sensores.begin_mpu();
   }
   /**************** CORES *****************/

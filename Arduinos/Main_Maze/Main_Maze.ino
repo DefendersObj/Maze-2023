@@ -19,9 +19,9 @@ Mapa mapa_;
 Estrategia estrategia;
 //Sensores sensores;
 
-/*!<********** Declaração de todas variaveis ***********/
+/*!<****** Declaração de todas variaveis ********/
 
-/*!<******** Protótipo das Funções **********/
+/*!<******* Protótipo das Funções ********/
 char comando_manual();
 
 /*!< ************** Setup do Código *******************/
@@ -85,7 +85,7 @@ char comando_manual() {
   return input;
 }
 
-
+/*! Le o encoder via interrupcao e converte ele para centimetros*/
 void ler_encoder(){
   sensores.passos++;
   sensores.passos_cm = sensores.passos * 0.75100;
