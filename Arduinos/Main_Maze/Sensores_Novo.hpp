@@ -5,13 +5,13 @@
 #include <Adafruit_MLX90614.h> /*!< Inclusão da biblioteca do MLX */
 #include "Ultrassonico.hpp"    /*!< Inclusão da classe dos Ultrassonicos */
 
-#define OFFSET 0.91      //0.88 /*!< Valor de correcao para MPU */
+#define OFFSET 0.91        //0.88 /*!< Valor de correcao para MPU */
 #define DIMENSIONAL 1.014  // 6.8  /*!< Constante de correcao para MPU*/
 
 MPU6050 gyroscope;
 
 /*Ordem dos Ultrassonicos em sentido Horário! */
-//Ultrasonic frente(12, 13, TIMEOUT);
+Ultrassonico frente(36, 42, -0.5);
 Ultrassonico direita_f(48, 50, -1.7);
 Ultrassonico direita_t(38, 40, 0.5);
 //Ultrasonic tras(12, 13, TIMEOUT);
@@ -24,7 +24,7 @@ private:
 
   float ultima_passagem = 0.0;  //Usada na medicao do tempo
   float angulo_z = 0.0;         // Angulo atual
-  float tempo_atual = 0.0;        
+  float tempo_atual = 0.0;
   float tempo_decorrido = 0.0;
 
   /*!<Retorna intervalo de tempo entre as chamadas*/
@@ -42,13 +42,24 @@ public:
 
   /*Percorre cada sensor e exibe os resultados. EM SENTIDO HORARIO!!!*/
   void ler_dist() {
-    //dist[0] = frente.read();
+    dist[0] = frente.media(10);
     dist[1] = direita_f.media(10);
     dist[2] = direita_t.media(10);
     //dist[3] = tras.read();
     dist[4] = esquerda_t.media(10);
     dist[5] = esquerda_f.media(10);
   }
+
+  /*Percorre cada sensor e exibe os resultados. EM SENTIDO HORARIO!!!*/
+  void ler_dist_rapido() {
+    dist[0] = frente.read();
+    dist[1] = direita_f.read();
+    dist[2] = direita_t.read();
+    //dist[3] = tras.read();
+    dist[4] = esquerda_t.read();
+    dist[5] = esquerda_f.read();
+  }
+
   /******************** MPU ***********************/
 
   /*!< Inicializa MPU */
@@ -67,7 +78,7 @@ public:
     //Serial.print(gyroscope.z_gyro());
     //Serial.print(" Angulo: ");
     //Serial.println(angulo_z);
-    return angulo_z;
+    return -angulo_z;
   }
 
   /*!< Funcao que zera as referencia da MPU*/
@@ -86,7 +97,7 @@ public:
   void calibrar_offset() {
     float offset;
     for (float i = 1; i < 10000; i++) {
-      offset += (gyroscope.z_gyro() - offset)/i;
+      offset += (gyroscope.z_gyro() - offset) / i;
       Serial.println(i);
     }
     Serial.print("Offset estimado: ");

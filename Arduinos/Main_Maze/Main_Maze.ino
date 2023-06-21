@@ -1,4 +1,6 @@
 
+
+
 //   _____       __                _
 //  |  __ \     / _|              | |
 //  | |  | | ___| |_ ___ _ __   __| | ___ _ __ ___
@@ -13,10 +15,12 @@
 #include "Mapa.hpp"
 #include "Comunicacao.hpp"
 #include "Sensores_Novo.hpp"
+#include <Servo.h>
 
 //Comunicacao com_;
 Mapa mapa_;
 Estrategia estrategia;
+Servo servo_frontal;
 //Sensores sensores;
 
 /*!<****** Declaração de todas variaveis ********/
@@ -34,6 +38,8 @@ void setup() {
   Serial.println("Iniciei");
   /*!< Inicializacoes nescessarias >!*/
   estrategia.iniciar();
+  servo_frontal.attach(41);
+  servo_frontal.write(36);
 }
 
 /****************** Inicio do Loop ********************/
@@ -44,9 +50,11 @@ void loop() {
   char comando = comando_manual();
   int ori = 0;         //comando_manual();
   bool busca = false;  //comando_manual();
-  
+
+
+
   //Frente
-   if (comando == 'F') {
+  if (comando == 'F') {
     estrategia.frente(ori, busca);
     Serial.println("Frente!!");
   }
@@ -60,12 +68,12 @@ void loop() {
 
   //Giro para Esquerda
   else if (comando == 'E') {
-    estrategia.giro(comando);
+    op.girar(500, -90.0);
   }
 
   //Giro para Esquerda
   else if (comando == 'D') {
-    estrategia.giro(comando);
+    op.girar(500, 90.0);
   }
 }
 
@@ -86,7 +94,7 @@ char comando_manual() {
 }
 
 /*! Le o encoder via interrupcao e converte ele para centimetros*/
-void ler_encoder(){
+void ler_encoder() {
   sensores.passos++;
-  sensores.passos_cm = sensores.passos * 0.75100;
+  sensores.passos_cm = sensores.passos * 0.75200;
 }

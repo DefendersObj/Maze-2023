@@ -15,7 +15,7 @@ public:
   /*! Funcao que coloca todos motores na mesma velocidade, e realiza seus espelhamentos*/
   void mesma_potencia(int vel, int dif_lado = 0) {
     //Caso normal da movimentacao
-    int aux[4] = { (vel - dif_lado), -(vel + dif_lado), (vel - dif_lado) , -(vel + dif_lado)};
+    int aux[4] = { (vel + dif_lado), -(vel - dif_lado), (vel + dif_lado) , -(vel - dif_lado)};
     potencia(aux);  //E enviado para os motores os valores de correcao
   }
 
