@@ -16,7 +16,7 @@ private:
   float setpoint;               // Desired setpoint
   float output;                 // Control output
   float integral;               // Integral term
-  float ErroAnterior;          // Previous erro
+  float ErroAnterior;           // Previous erro
   float ultima_passagem = 0.0;  //Usada na medicao do tempo
   float tempo_atual = 0.0;
   float tempo_decorrido = 0.0;

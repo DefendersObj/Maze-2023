@@ -27,6 +27,8 @@ public:
 
     //Cordenadas de inicio
     //mapa.save_cord();
+    op.zerar_mpu();
+    sensores.zerar_encoder();
 
     //Ajusta o robo no próprio eixo
     op.correcao();
@@ -36,16 +38,16 @@ public:
     //Parametros para troca
     //op.setar_quadrado(op.dist[0], op.dist[3]);
 
-    op.zerar_mpu();
-    sensores.zerar_encoder();
-    //Loop ate a troca de quadrado
+    
     //while(1){
       //Serial.println(sensores.passos);
     //}
+
+    /*Loop ate a troca de quadrado*/
     while (op.troca_encoder() == false) {
       //op.ler_distancias();
       //sensores.passos = 0;
-      op.movimento(500);
+      op.movimento();
       //Serial.println(sensores.passos_cm);
     }
 

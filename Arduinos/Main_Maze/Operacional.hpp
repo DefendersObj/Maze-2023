@@ -22,7 +22,7 @@ Sensores sensores;
 /*! Constroi os PIDs*/
 //KP, KI, KD, Setpoint, windup, limite
 PID pidG(60.0, 0.1, 2.0, 0, 10, 50);     //Giroscopio
-PID pidF(0.5, 0.2, 0.1, 100, 100, 100);  //Frontal
+PID pidF(1, 0.0, 0.1, 7, 10, 50);  //Frontal
 
 
 class Operacional {
@@ -61,10 +61,12 @@ public:
   void setar_PID_diagonal(int setpoint = 0) {
     pidG.setSetpoint(setpoint);
   }
+
   /******************** ANGULO **********************/
   void zerar_mpu() {
     sensores.zerar_mpu();
   }
+
   /******************** DISTANCIAS **********************/
   float dist[6];
   float correction_angle = 0;
@@ -228,13 +230,13 @@ public:
     }
   }
 
-  /************************************ CORREÇÃO *********************************************/
+  /************************************ CORREÇÃO ******************************************/
 
   /*Correcao do angulo do robo a cada parada*/
   void correcao() {
     float ang = angulo();
     //Parte 1 alinha o robo com a parede
-    int aux[] = { -200, -200, -200, -200 };  // Inicia com valores para esquerda
+    int aux[] = { -180, -180, -180, -180 };  // Inicia com valores para esquerda
     sensores.zerar_mpu();
 
     //Ajuste para esquerda
@@ -260,9 +262,11 @@ public:
     sensores.zerar_mpu();
   }
 
-  /* */
+  /*Tendo a distancia nescessaria para atingir o centro do proximo quadrado,
+   e o angulo que devemos manter para alcancala, esta funcao ajusta o robo no dado angulo, e atualiza a distancia
+   nescessaria para a troca pelo encoder*/
   void correcao_trajetoria() {
-    int aux[] = { -200, -200, -200, -200 };  // Inicia com valores para esquerda
+    int aux[] = { -180, -180, -180, -180 };  // Inicia com valores para esquerda
 
     sensores.zerar_mpu();
 
@@ -273,11 +277,11 @@ public:
       }
     }
 
-    else if (correction_angle > 0) {  //Eesquerda
-      aux[0] = 200;
-      aux[1] = 200;
-      aux[2] = 200;
-      aux[3] = 200;
+    else if (correction_angle > 0) {  //Esquerda
+      aux[0] = 180;
+      aux[1] = 180;
+      aux[2] = 180;
+      aux[3] = 180;
 
       while (sensores.angulo_mpu() >= -correction_angle) {
         motores.potencia(aux);
@@ -293,7 +297,7 @@ public:
     float cateto;
     trajetoria = 30.0;
 
-    //Escolhemos o lado mais proximo e verificamos se ele é coerente
+    //Escolhemos a parede mas proxima para estimar a nova trajetoria
     if (dist[1] <= dist[5]) {  //Próximo da esquerda
       cateto = -(7 - fmod(dist[1], 30.0));
     }
@@ -307,7 +311,7 @@ public:
     }
 
     //Nova distancia a ser percorrida (Deve ser passada para a troca)
-    trajetoria = sqrt(pow(cateto, 2) + pow(30.0, 2));  // Calculate the hypotenuse
+    trajetoria = sqrt(pow(cateto, 2) + pow(30.0, 2));
     correction_angle = atan(cateto / 30.0) * (180.0 / M_PI);
     Serial.print("cateto: ");
     Serial.println(cateto);
