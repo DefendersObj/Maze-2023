@@ -34,12 +34,12 @@ public:
     op.correcao();
     op.calcular_trajetoria();
     op.correcao_trajetoria();
-
     sensores.zerar_encoder();
 
     //Parametros para troca
     //op.setar_quadrado(op.dist[0], op.dist[3]);
 
+    
 
     //while(1){
     //Serial.println(sensores.passos);
@@ -47,8 +47,9 @@ public:
 
     /*Loop ate a troca de quadrado*/
     while (op.troca_quadrado() == false) {
-      //op.ler_distancias();
-      //sensores.passos = 0;
+      
+      //Busca mudancas nas paredes laterais para uma troca mais precisa
+      op.trajetoria_por_parede();
       op.movimento(500);
       //Serial.println(sensores.passos_cm);
     }

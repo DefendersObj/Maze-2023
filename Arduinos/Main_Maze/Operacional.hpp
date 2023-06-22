@@ -73,16 +73,13 @@ public:
   float trajetoria = 30.0;
   bool passagens[4];
 
-
-
-
-
   /*! Verifica a existencia de passagens nas quatro direcoes*/
   void medir_passagens() {
-    if (sensores.dist[0] >= 25) { passagens[0] = true; }
-    if (sensores.dist[1] + sensores.dist[2] / 2 >= 25) { passagens[1] = true; }
-    if (sensores.dist[3] >= 25) { passagens[2] = true; }
-    if (sensores.dist[4] + sensores.dist[5] / 2 >= 25) { passagens[3] = true; }
+    sensores.ler_dist();
+    if (sensores.dist[0] >= 25) passagens[0] = true;
+    if (sensores.dist[1] + sensores.dist[2] / 2 >= 25) passagens[1] = true;
+    if (sensores.dist[3] >= 25) passagens[2] = true;
+    if (sensores.dist[4] + sensores.dist[5] / 2 >= 25) passagens[3] = true;
   }
 
   /*! Estima o angulo atual com base em dois valores de distancia*/
@@ -188,10 +185,10 @@ public:
   }
 
   /****************************************** TROCA DE QUADRADO *********************************************/
-
   /*! São definidos os parametros de distancia e do Encoder, para a troca*/
   void setar_quadrado() {
     sensores.zerar_encoder();
+    zerar_trajetoria_por_parede();
   }
 
   /*Um dos parametros da troca*/
@@ -200,7 +197,7 @@ public:
     //Checa se foram passos suficientes
     Serial.println(sensores.passos_cm);
     if (sensores.passos_cm >= trajetoria) {
-      
+
       sensores.zerar_encoder();
       return true;
     } else {
@@ -208,10 +205,68 @@ public:
     }
   }
 
+
+  /*Busca uma alteração brusca entre as medidas de distancia, fornecendo um parametro mais preciso para o Encoder*/
+
+  //Direita frontal e Esquerda frontal
+  float last_dist[2] = { sensores.dist[1], sensores.dist[5] };
+  bool limitador = false;  //Limita o numero de vezes em que zeramos o Encoder
+
+  void trajetoria_por_parede() {
+
+    sensores.ler_dist_rapido();
+
+
+    Serial.print("Esq atual: ");
+    Serial.print(sensores.dist[5]);
+    Serial.print(" Esq Passado: ");
+    Serial.print(last_dist[1]);
+    Serial.print(" Dir atual: ");
+    Serial.print(sensores.dist[1]);
+    Serial.print(" Dir Passado: ");
+    Serial.println(last_dist[0]);
+
+    //Filtro lado direito
+    if (sensores.dist[1] <= 50.0 && last_dist[0] <= 50.0) {
+      if (abs(sensores.dist[1] - last_dist[0]) >= 28.0) {  //Procura diferença
+        trajetoria = 20.0;
+        if (limitador == false) {
+          sensores.zerar_encoder();
+          Serial.print(" DDDDDDDDDDDDDDDDDDDDDDDDDD ");
+          limitador = true;
+        }
+      }
+    }
+    //Filtro lado Esquerdo
+    if (sensores.dist[5] <= 50.0 && last_dist[1] <= 50.0) {
+      if (abs(sensores.dist[5] - last_dist[1]) >= 28.0) {  //Procura diferença
+        trajetoria = 20.0;
+        if (limitador == false) {
+          sensores.zerar_encoder();
+          Serial.print(" EEEEEEEEEEEEEEEEEEEEEEEEEEEEE ");
+          limitador = true;
+        }
+      }
+    }
+
+    //Salvamos para proximas iteracoes
+    last_dist[0] = sensores.dist[1];
+    last_dist[1] = sensores.dist[5];
+  }
+
+  /*Utilizada apos finalizar uma movimentacao, para previnir erros*/
+  void zerar_trajetoria_por_parede() {
+    sensores.ler_dist_rapido();
+    last_dist[0] = sensores.dist[1];
+    last_dist[1] = sensores.dist[5];
+    limitador = false;
+  }
+
+
   /* Verifica a troca de quadrado */
   bool troca_quadrado() {
 
-      sensores.ler_dist_rapido();
+    sensores.ler_dist_rapido();
 
     // Troca pelas distancias
     if (sensores.dist[0] <= 7.5 && sensores.dist[0] != 0.0) {
@@ -283,5 +338,7 @@ public:
     Serial.print("Angulo estimado: ");
     Serial.println(correction_angle);
   }
+  /********************** Servos********************************/
+  
 };
 #endif

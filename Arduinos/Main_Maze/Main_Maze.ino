@@ -33,13 +33,13 @@ void setup() {
 
   Serial.begin(250000);
   Serial3.begin(115200);
+  /*!< Inicializacoes nescessarias >!*/
   pinMode(5, INPUT);
   attachInterrupt(digitalPinToInterrupt(5), ler_encoder, CHANGE);
-  Serial.println("Iniciei");
-  /*!< Inicializacoes nescessarias >!*/
   estrategia.iniciar();
   servo_frontal.attach(41);
   servo_frontal.write(36);
+  Serial.println("Iniciei");
 }
 
 /****************** Inicio do Loop ********************/

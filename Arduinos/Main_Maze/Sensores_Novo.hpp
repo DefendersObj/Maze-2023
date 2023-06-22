@@ -51,12 +51,12 @@ public:
   }
 
   /*Percorre cada sensor e exibe os resultados. EM SENTIDO HORARIO!!!*/
-  void ler_dist_rapido() {
+  void ler_dist_rapido(int ) {
     dist[0] = frente.read();
     dist[1] = direita_f.read();
-    dist[2] = direita_t.read();
+    //dist[2] = direita_t.read();
     //dist[3] = tras.read();
-    dist[4] = esquerda_t.read();
+    //dist[4] = esquerda_t.read();
     dist[5] = esquerda_f.read();
   }
 
