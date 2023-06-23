@@ -114,7 +114,13 @@ public:
       cat_op = tras - frente;
     }
 
-    angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
+    //Filtro
+    if (frente <= 45.0 && tras <= 45.0) {
+      angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
+    } else {
+      angulo = 0.0;
+      Serial.println("Valores Invalidos para correcao");
+    }
 
     //Correcao dependendo da angulacao
     if (frente > tras && lado == true) {
@@ -129,7 +135,6 @@ public:
     Serial.println(cat_op);
     return angulo;
   }
-
 
 
   /********************************************************************* MOVIMENTACAO ********************************************************************/
@@ -214,7 +219,10 @@ public:
 
   void trajetoria_por_parede() {
 
-    sensores.ler_dist_rapido();
+    //Sensores que devem ser atualizados
+    int aux[4] = { 1, 5 };
+
+    sensores.ler_dist_rapido(aux);
 
 
     Serial.print("Esq atual: ");
@@ -256,7 +264,12 @@ public:
 
   /*Utilizada apos finalizar uma movimentacao, para previnir erros*/
   void zerar_trajetoria_por_parede() {
-    sensores.ler_dist_rapido();
+
+    //Sensores que devem ser atualizados
+    int aux[4] = { 1, 5 };
+
+    sensores.ler_dist_rapido(aux);
+
     last_dist[0] = sensores.dist[1];
     last_dist[1] = sensores.dist[5];
     limitador = false;
@@ -266,7 +279,10 @@ public:
   /* Verifica a troca de quadrado */
   bool troca_quadrado() {
 
-    sensores.ler_dist_rapido();
+    //Sensores que devem ser atualizados
+    int aux[1] = { 0 };
+
+    sensores.ler_dist_rapido(aux);
 
     // Troca pelas distancias
     if (sensores.dist[0] <= 7.5 && sensores.dist[0] != 0.0) {
@@ -311,16 +327,18 @@ public:
 
   /*Cálculo do comprimento da nova trajetória */
   void calcular_trajetoria() {
+
     sensores.ler_dist();
     float cateto;
     trajetoria = 30.0;
 
-    //Escolhemos a parede mas proxima para estimar a nova trajetoria
-    if (sensores.dist[1] <= sensores.dist[5]) {  //Próximo da esquerda
+
+    //Escolhemos a parede mas proxima para estimar a nova trajetoria, eaplicamos um filtro
+    if (sensores.dist[1] <= sensores.dist[5] && sensores.dist[1] <= 45.0) {  //Próximo da Direita
       cateto = -(7 - fmod(sensores.dist[1], 30.0));
     }
 
-    else if (sensores.dist[5] <= sensores.dist[1]) {  //Próximo da direita
+    else if (sensores.dist[5] <= sensores.dist[1] && sensores.dist[5] <= 45.0) {  //Próximo da Esquerda
       cateto = (7 - fmod(sensores.dist[5], 30.0));
     }
     //Caso nao nescessite de correcao
@@ -338,7 +356,6 @@ public:
     Serial.print("Angulo estimado: ");
     Serial.println(correction_angle);
   }
-  /********************** Servos********************************/
-  
+  /********************** Servos*************************/
 };
 #endif

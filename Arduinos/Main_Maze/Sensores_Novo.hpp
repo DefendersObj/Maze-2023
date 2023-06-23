@@ -14,7 +14,7 @@ MPU6050 gyroscope;
 Ultrassonico frente(36, 42, -0.5);
 Ultrassonico direita_f(48, 50, -1.7);
 Ultrassonico direita_t(38, 40, 0.5);
-//Ultrasonic tras(12, 13, TIMEOUT);
+Ultrassonico tras(12, 13);
 Ultrassonico esquerda_f(26, 32, -0.1);
 Ultrassonico esquerda_t(28, 30, 1.5);
 
@@ -45,20 +45,40 @@ public:
     dist[0] = frente.media(10);
     dist[1] = direita_f.media(10);
     dist[2] = direita_t.media(10);
-    //dist[3] = tras.read();
+    dist[3] = tras.media(10);
     dist[4] = esquerda_t.media(10);
     dist[5] = esquerda_f.media(10);
   }
 
-  /*Percorre cada sensor e exibe os resultados. EM SENTIDO HORARIO!!!*/
-  void ler_dist_rapido(int ) {
-    dist[0] = frente.read();
-    dist[1] = direita_f.read();
-    //dist[2] = direita_t.read();
-    //dist[3] = tras.read();
-    //dist[4] = esquerda_t.read();
-    dist[5] = esquerda_f.read();
+  /*Recebe em um array com o endereço dos sensores que devem ser lidos*/
+  void ler_dist_rapido(int numbers[]) {
+
+    for (int i = 0; i < 6; i++) {
+      switch (numbers[i]) {
+        case 0:  //Frente
+          dist[0] = frente.read();
+          break;
+        case 1:  //Direita Frente
+          dist[1] = direita_f.read();
+          break;
+        case 2:  //Direita Tras
+          dist[2] = direita_t.read();
+          break;
+        case 3:  //Tras
+          dist[3] = tras.read();
+          break;
+        case 4:  //Esquerda tras
+          dist[4] = esquerda_t.read();
+          break;
+        case 5:  //Esquerda Frente
+          dist[5] = esquerda_f.read();
+          break;
+        default:  //Condicao de saída
+          break;
+      }
+    }
   }
+
 
   /******************** MPU ***********************/
 

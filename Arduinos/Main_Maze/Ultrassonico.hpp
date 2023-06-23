@@ -19,6 +19,8 @@ private:
 
 public:
 
+  /*Construtor(Trigger, Echo, erro padrao)
+    Realiza o setup do sensor emquestão*/
   Ultrassonico(byte trigger, byte echo, float correcao = 0.0){
     _trigger = trigger;
     _echo = echo;
@@ -28,6 +30,7 @@ public:
     pinMode(_echo, INPUT);
   }
 
+  /*Realiza a Leitura do sensor*/
   float read(){
     unsigned long tempo;
 
@@ -51,6 +54,7 @@ public:
 
   }
 
+  /*Calcula a média aritimética de N leituras*/
   float media(unsigned int num_mean){
     float average = 0;
     for(float x = 1 ; x <= num_mean ; x++){
