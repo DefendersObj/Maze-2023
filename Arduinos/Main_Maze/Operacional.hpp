@@ -98,13 +98,25 @@ public:
     bool lado = false;
 
     //Decidimos qual lado do robo e o mais proximo para medir o angulo
-    if (ef + et <= df + dt) {
+    if (abs(ef - et) <= abs(df - dt)) {
       frente = ef;
       tras = et;
       lado = true;
+      Serial.print("lado esquerdo escolhido: ");
+      Serial.print("frontal: ");
+      Serial.print(frente);
+      Serial.print(" trazeiro: ");
+      Serial.println(tras);
+
+
     } else {
       frente = df;
       tras = dt;
+      Serial.print("lado direito escolhido: ");
+      Serial.print("frontal: ");
+      Serial.print(frente);
+      Serial.print(" trazeiro: ");
+      Serial.println(tras);
     }
 
 
@@ -115,13 +127,14 @@ public:
     }
 
     //Filtro
-    if (frente <= 45.0 && tras <= 45.0) {
-      angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
+    angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
+    /*if (frente <= 45.0 && tras <= 45.0) {
+    
     } else {
       angulo = 0.0;
       Serial.println("Valores Invalidos para correcao");
     }
-
+*/
     //Correcao dependendo da angulacao
     if (frente > tras && lado == true) {
       angulo = angulo * -1.0;
@@ -129,10 +142,8 @@ public:
       angulo = angulo * -1.0;
     }
 
-    Serial.print("Angulo: ");
+    Serial.print("Angulo correcao: ");
     Serial.println(angulo);
-    Serial.print("Cateto Oposto: ");
-    Serial.println(cat_op);
     return angulo;
   }
 
@@ -200,7 +211,6 @@ public:
   bool troca_encoder() {
 
     //Checa se foram passos suficientes
-    Serial.println(sensores.passos_cm);
     if (sensores.passos_cm >= trajetoria) {
 
       sensores.zerar_encoder();
@@ -225,33 +235,24 @@ public:
     sensores.ler_dist_rapido(aux);
 
 
-    Serial.print("Esq atual: ");
-    Serial.print(sensores.dist[5]);
-    Serial.print(" Esq Passado: ");
-    Serial.print(last_dist[1]);
-    Serial.print(" Dir atual: ");
-    Serial.print(sensores.dist[1]);
-    Serial.print(" Dir Passado: ");
-    Serial.println(last_dist[0]);
-
     //Filtro lado direito
     if (sensores.dist[1] <= 50.0 && last_dist[0] <= 50.0) {
-      if (abs(sensores.dist[1] - last_dist[0]) >= 28.0) {  //Procura diferença
+      if (abs(sensores.dist[1] - last_dist[0]) >= 20.0) {  //Procura diferença
         trajetoria = 20.0;
         if (limitador == false) {
           sensores.zerar_encoder();
-          Serial.print(" DDDDDDDDDDDDDDDDDDDDDDDDDD ");
+          Serial.println("parede direita/encoder");
           limitador = true;
         }
       }
     }
     //Filtro lado Esquerdo
     if (sensores.dist[5] <= 50.0 && last_dist[1] <= 50.0) {
-      if (abs(sensores.dist[5] - last_dist[1]) >= 28.0) {  //Procura diferença
+      if (abs(sensores.dist[5] - last_dist[1]) >= 20.0) {  //Procura diferença
         trajetoria = 20.0;
         if (limitador == false) {
           sensores.zerar_encoder();
-          Serial.print(" EEEEEEEEEEEEEEEEEEEEEEEEEEEEE ");
+          Serial.println("parede esquerda/encoder");
           limitador = true;
         }
       }
@@ -334,26 +335,31 @@ public:
 
 
     //Escolhemos a parede mas proxima para estimar a nova trajetoria, eaplicamos um filtro
-    if (sensores.dist[1] <= sensores.dist[5] && sensores.dist[1] <= 45.0) {  //Próximo da Direita
-      cateto = -(7 - fmod(sensores.dist[1], 30.0));
+    if (abs(sensores.dist[1] - sensores.dist[2]) < abs(sensores.dist[4] - sensores.dist[5])) {  //Próximo da Direita
+      cateto = -(7 - fmod(((sensores.dist[1] + sensores.dist[2]) / 2), 30.0));
+      Serial.print("correcao de trajetoria, lado direito: frontal: ");
+      Serial.print(sensores.dist[1]);
+      Serial.print(" trazeiro: ");
+      Serial.println(sensores.dist[2]);
     }
 
-    else if (sensores.dist[5] <= sensores.dist[1] && sensores.dist[5] <= 45.0) {  //Próximo da Esquerda
-      cateto = (7 - fmod(sensores.dist[5], 30.0));
+    else {  //Próximo da Esquerda
+      cateto = (7 - fmod(((sensores.dist[5] + sensores.dist[4]) / 2), 30.0));
+      Serial.print("correcao de trajetoria, lado esquerdo: frontal: ");
+      Serial.print(sensores.dist[5]);
+      Serial.print(" trazeiro: ");
+      Serial.println(sensores.dist[4]);
     }
     //Caso nao nescessite de correcao
-    else {
-      return;
-    }
 
     //Nova distancia a ser percorrida (Deve ser passada para a troca)
     trajetoria = sqrt(pow(cateto, 2) + pow(30.0, 2));
     correction_angle = atan(cateto / 30.0) * (180.0 / M_PI);
-    Serial.print("cateto: ");
+    Serial.print("desalinhamento lateral: ");
     Serial.println(cateto);
     Serial.print("Trajetoria: ");
     Serial.println(trajetoria);
-    Serial.print("Angulo estimado: ");
+    Serial.print("Angulo trajetoria: ");
     Serial.println(correction_angle);
   }
   /********************** Servos*************************/

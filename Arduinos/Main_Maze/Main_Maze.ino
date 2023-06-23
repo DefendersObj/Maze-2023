@@ -96,5 +96,5 @@ char comando_manual() {
 /*! Le o encoder via interrupcao e converte ele para centimetros*/
 void ler_encoder() {
   sensores.passos++;
-  sensores.passos_cm = sensores.passos * 0.75200;
+  sensores.passos_cm = sensores.passos * 0.78530;
 }

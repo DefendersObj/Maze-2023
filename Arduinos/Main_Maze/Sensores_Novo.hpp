@@ -12,7 +12,7 @@ MPU6050 gyroscope;
 
 /*Ordem dos Ultrassonicos em sentido Horário! */
 Ultrassonico frente(36, 42, -0.5);
-Ultrassonico direita_f(48, 50, -1.7);
+Ultrassonico direita_f(48, 50, 0.0);
 Ultrassonico direita_t(38, 40, 0.5);
 Ultrassonico tras(12, 13);
 Ultrassonico esquerda_f(26, 32, -0.1);

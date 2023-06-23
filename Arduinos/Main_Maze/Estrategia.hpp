@@ -55,6 +55,7 @@ public:
     }
 
     op.parar();
+    //Desvira
     if (op.correction_angle <= 30.0 && op.correction_angle >= -30.0) {
       op.girar(200, -op.correction_angle);
     }

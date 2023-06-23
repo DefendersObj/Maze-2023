@@ -23,22 +23,39 @@ private:
   bool passagens[4];
 
   unsigned char mapa[SIZE][SIZE] = { { 0 } };
+  
 
 
 public:
 
-  /*! Salva as cordenadas atuais !*/
-  void save_cord() {
-    last_x = x;
-    last_y = y;
-  }
+ 
   
   /* Recebe a cor e as passagens do quadrado novo */
-  void recebe_passagens_cor(bool aux[4], char color) {
-    for (int i = 0; i < 4; i++) {
-      passagens[i] = aux[i];
+  void set_color(int x, int y, char color) {
+    switch (color){
+      case 'w':
+        color = 1;
+      break;
+
+      case 'b':
+        color = 2;
+      break;
+
+      case 's':
+        color = 3;
+      break;
+
+      case 'p':
+        color = 4;
+      break;
     }
-    cor = color;
+    mapa[x][y] &= ~(0b01110000);
+    mapa[x][y] |= (color<<4);
+  }
+
+  void set_passages(int x, int y, char passages, byte orientation = 0){
+    mapa[x][y] &= ~(0b00001111);
+    mapa[x][y] |= (((passages << orientation) |  (passages >> (4 - orientation))) & ~(0b11110000)); 
   }
 
   /* Atualiza os bits da posicao atual do mapa */

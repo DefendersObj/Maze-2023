@@ -59,7 +59,7 @@ public:
     float average = 0;
     for(float x = 1 ; x <= num_mean ; x++){
       average += (read() - average)/x;
-      delay(20);
+      delay(30);
     }
     return average;
   }
