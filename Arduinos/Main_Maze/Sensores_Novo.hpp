@@ -2,12 +2,12 @@
 #define Sensores_hpp
 
 #include <MPU6050.h>           /*!< Inclusão da biblioteca do MPU */
-#include <Adafruit_MLX90614.h> /*!< Inclusão da biblioteca do MLX */
 #include "Ultrassonico.hpp"    /*!< Inclusão da classe dos Ultrassonicos */
 
 #define OFFSET 0.91        //0.88 /*!< Valor de correcao para MPU */
 #define DIMENSIONAL 1.014  // 6.8  /*!< Constante de correcao para MPU*/
 
+/*Declara MPU*/
 MPU6050 gyroscope;
 
 /*Ordem dos Ultrassonicos em sentido Horário! */
@@ -149,6 +149,6 @@ public:
     passos = 0;
     passos_cm = 0.0;
   }
-  /***************** MLX TEMPERATURA *****************/
+
 };
 #endif

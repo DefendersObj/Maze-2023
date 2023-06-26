@@ -30,33 +30,36 @@ public:
 
  
   
-  /* Recebe a cor e as passagens do quadrado novo */
+  /* Dada as cordenadas zeramos os bits 3 da cor e atualizamos com os valores novos por cima*/
   void set_color(int x, int y, char color) {
     switch (color){
       case 'w':
-        color = 1;
+        color = 1; //1
       break;
 
       case 'b':
-        color = 2;
+        color = 2;//10
       break;
 
       case 's':
-        color = 3;
+        color = 3;//011
       break;
 
       case 'p':
-        color = 4;
+        color = 4;//100
       break;
     }
-    mapa[x][y] &= ~(0b01110000);
+    mapa[x][y] &= ~(0b01110000);//Bits utilizados para cor sao zerados
     mapa[x][y] |= (color<<4);
   }
 
+  /*Dadas as cordenadas e a orientacao em relacao ao norte do mapa, recebemos as passagens
+    do quadrado, zeramos qualquer passagem previamente salva, e alteramanos os bits das passagens*/
   void set_passages(int x, int y, char passages, byte orientation = 0){
-    mapa[x][y] &= ~(0b00001111);
-    mapa[x][y] |= (((passages << orientation) |  (passages >> (4 - orientation))) & ~(0b11110000)); 
+    mapa[x][y] &= ~(0b00001111);//Bits das passagens sao zerados
+    mapa[x][y] |= (((passages << orientation) |  (passages >> (4 - orientation))) & ~(0b11110000));//Adicionamos e invertemos de acordo com a orientacao
   }
+
 
   /* Atualiza os bits da posicao atual do mapa */
   void atualizacao(bool passagens[4], char cor) {

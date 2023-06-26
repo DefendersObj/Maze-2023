@@ -11,7 +11,7 @@
 
 /*!< Incluindo classes  */
 #include "Operacional.hpp"
-#include "Estrategia.hpp"
+#include "Navegacao.hpp"
 #include "Mapa.hpp"
 #include "Comunicacao.hpp"
 #include "Sensores_Novo.hpp"
@@ -19,8 +19,7 @@
 
 //Comunicacao com_;
 Mapa mapa_;
-Estrategia estrategia;
-Servo servo_frontal;
+Navegacao navegacao;
 //Sensores sensores;
 
 /*!<****** Declaração de todas variaveis ********/
@@ -32,13 +31,13 @@ char comando_manual();
 void setup() {
 
   Serial.begin(250000);
+  Serial2.begin(115200);
   Serial3.begin(115200);
+
   /*!< Inicializacoes nescessarias >!*/
   pinMode(5, INPUT);
   attachInterrupt(digitalPinToInterrupt(5), ler_encoder, CHANGE);
-  estrategia.iniciar();
-  servo_frontal.attach(41);
-  servo_frontal.write(36);
+  op.iniciar();
   Serial.println("Iniciei");
 }
 
@@ -55,12 +54,12 @@ void loop() {
 
   //Frente
   if (comando == 'F') {
-    estrategia.frente(ori, busca);
+    op.frente(ori, busca);
     Serial.println("Frente!!");
   }
   //Start
   else if (comando == 'S') {
-    estrategia.iniciar();
+    op.iniciar();
   }
   //Agua
   else if (comando == 'P') {

@@ -6,7 +6,7 @@ e o funcionamento dos Atuadores.
 As funcoes dessa classe ainda nao sao as ideias para utilizicacao no codigo main*/
 
 /*!< Incluindo classes */
-//#include "Motor_Novo.hpp"
+#include <Servo.h>
 #include "Motor.hpp"
 #include "Sensores_Novo.hpp"
 #include "PID.hpp"
@@ -38,10 +38,6 @@ private:
 
 public:
 
-  /*! Inicializacao dos Motores e Sensores*/
-  void begin() {
-    sensores.begin_mpu();
-  }
   /**************** CORES *****************/
   char cor() {
     //Le o sensor
@@ -362,6 +358,125 @@ public:
     Serial.print("Angulo trajetoria: ");
     Serial.println(correction_angle);
   }
-  /********************** Servos*************************/
+  /********************** Servos *************************/
+
+  Servo servo_camera;
+  Servo servo_resgate;
+  Servo servo_frontal;
+
+  /*Inicializa os Servos*/
+  void servos_begin() {
+    // Inicia os servos
+    servo_camera.attach(9);
+    servo_resgate.attach(11);
+    servo_frontal.attach(41);
+    //Posicoes iniciais
+    servo_frontal.write(36);
+    servo_resgate.write(36);
+    servo_camera.write(36);
+  }
+
+  /*Realiza as movimentacoes da camera*/
+  void move_camera(char com) {
+    if (com == 'E') servo_camera.write(36);  //Ajustar
+    else if (com == 'F') servo_camera.write(36);  //Ajustar
+    else if (com == 'D') servo_camera.write(36);  //Ajustar
+  }
+
+  /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
+  void resgate(int kits, char lado) {
+    int aux = 0;
+    servo_camera.write(36);  //Posicao de repouso
+
+    //Resgate do lado Esquerdo
+    if (lado == 'E')
+      while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado direito
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+    //Resgate do lado Direito
+    else if (lado == 'E')
+      while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado esquerdo
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+    //Resgate na Frente
+    else if (lado == 'F') {
+      //Gira o robo para realizar o resgate
+      girar(500, 90.0);
+
+        while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado direito
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+      //Gira para a posicao inicial
+      girar(500, -90.0);
+    }
+  }
+
+  /************************************************************************************ COMANDOS *********************************************************************************************************/
+  /*! Realiza todas inicializações*/
+  void iniciar() {
+    sensores.begin_mpu();
+    servos_begin();
+  }
+
+  /*! Movimentamos 1 quadrado para Frente */
+  void frente(int ori, bool busca) {
+
+    //Cordenadas de inicio
+    //mapa.save_cord();
+    zerar_mpu();
+    setar_quadrado();
+
+    //Ajusta o robo no próprio eixo
+    correcao();
+    calcular_trajetoria();
+    correcao_trajetoria();
+    sensores.zerar_encoder();
+
+    //Parametros para troca
+    //setar_quadrado(dist[0], dist[3]);
+
+
+
+    //while(1){
+    //Serial.println(sensores.passos);
+    //}
+
+    /*Loop ate a troca de quadrado*/
+    while (troca_quadrado() == false) {
+
+      //Busca mudancas nas paredes laterais para uma troca mais precisa
+      trajetoria_por_parede();
+      movimento(500);
+      //Serial.println(sensores.passos_cm);
+    }
+
+    parar();
+    //Desvira
+    if (correction_angle <= 30.0 && correction_angle >= -30.0) {
+      girar(200, -correction_angle);
+    }
+    //op.medir_passagens();
+    //mapa.recebe_passagens_cor(op.passagens, op.cor());
+    //mapa.orientacao(ori);
+    //mapa.move_cordenada(false, false);
+    //mapa.imprimir();
+  }
+
+
+  /*! Busca vitimas com a camera*/
+  void buscar_vit() {
+  }
 };
 #endif
