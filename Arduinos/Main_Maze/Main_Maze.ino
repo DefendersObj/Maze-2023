@@ -39,43 +39,22 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(5), ler_encoder, CHANGE);
   op.iniciar();
   Serial.println("Iniciei");
+
 }
 
 /****************** Inicio do Loop ********************/
 void loop() {
+  navegacao.update_map();
 
-  //Teste manual (Essas informacoes devem vir da Decisao)
-  Serial.println("ME MANDA O COMANDO");
-  char comando = comando_manual();
-  int ori = 0;         //comando_manual();
-  bool busca = false;  //comando_manual();
+  char com = 0;
 
-
-
-  //Frente
-  if (comando == 'F') {
-    op.frente(ori, busca);
-    Serial.println("Frente!!");
+  while(com != 'F'){
+    com = navegacao.decisao();
+    ler_comando(com);
   }
-  //Start
-  else if (comando == 'S') {
-    op.iniciar();
-  }
-  //Agua
-  else if (comando == 'P') {
-  }
-
-  //Giro para Esquerda
-  else if (comando == 'E') {
-    op.girar(500, -90.0);
-  }
-
-  //Giro para Esquerda
-  else if (comando == 'D') {
-    op.girar(500, 90.0);
-  }
+  
+ 
 }
-
 
 /*!<********** Declaração das Funções ***********/
 
@@ -90,6 +69,37 @@ char comando_manual() {
   input = Serial.read();
 
   return input;
+}
+
+void ler_comando(char com) {
+  if (com == 'F') {
+    delay(300);
+    op.frente();
+    Serial.println("Frente!!");
+  }
+  //Start
+  else if (com == 'S') {
+    op.iniciar();
+  }
+  //Agua
+  else if (com == 'P') {
+  }
+
+  //Giro para Esquerda
+  else if (com == 'E') {
+    op.girar(500, -90.0);
+  }
+
+  //Giro para Direita
+  else if (com == 'D') {
+    op.girar(500, 90.0);
+  }
+
+
+  //Giro para Tras
+  else if (com == 'T') {
+    op.girar(500, 180.0);
+  }
 }
 
 /*! Le o encoder via interrupcao e converte ele para centimetros*/

@@ -26,7 +26,7 @@ public:
 
       /*! Espera echo do arudino mega, caso nao receba repetimos o enviuo*/
       unsigned long to_timer = millis();
-      while (!Serial3.available() && (millis() - to_timer) < 2)
+      while (!Serial3.available() && (millis() - to_timer) < 5)
         ;
       if ((millis() - to_timer) < 5) {
         if (Serial3.read() == 'k') break;
@@ -47,7 +47,7 @@ public:
   /* Lê a serial e manda um echo para a camera */
   String recebe_menssagem() {
     String menssagem = Serial2.readStringUntil('\n');
-    Serial2.print(menssagem + "\n");
+    Serial2.print(menssagem + "\n");//Echo
     return menssagem;
   }
 
@@ -79,12 +79,20 @@ public:
     }
   }
 
+  /*Junção das duas funções acima, verifica quantos kits devem ser entregues
+   e envia o echo do recebimento para acamera*/
+  int kits() {
+    if(Serial2.available()){
+      return process_menssagem(recebe_menssagem());
+    }
+  }
+
   /* void loop() {
 
     // APENAS PARA TESTES RECEBE MENSAGEM VIA SERIAL0
     if (Serial.available()) {
-      char side = Serial.read();
-      send_side(side);
+      char lado = Serial.read();
+      send_lado(lado);
     }
     // LÊ A SERIAL DA CAMERA
     if (Serial2.available()) {

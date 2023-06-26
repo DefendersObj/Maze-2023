@@ -11,12 +11,12 @@
 MPU6050 gyroscope;
 
 /*Ordem dos Ultrassonicos em sentido Horário! */
-Ultrassonico frente(36, 42, -0.5);
-Ultrassonico direita_f(48, 50, 0.0);
+Ultrassonico frente(46, 52, -0.5);
+Ultrassonico direita_f(48, 50, -1.5);
 Ultrassonico direita_t(38, 40, 0.5);
 Ultrassonico tras(12, 13);
 Ultrassonico esquerda_f(26, 32, -0.1);
-Ultrassonico esquerda_t(28, 30, 1.5);
+Ultrassonico esquerda_t(28, 30, 1.0);
 
 class Sensores {
 
@@ -42,12 +42,13 @@ public:
 
   /*Percorre cada sensor e exibe os resultados. EM SENTIDO HORARIO!!!*/
   void ler_dist() {
-    dist[0] = frente.media(10);
-    dist[1] = direita_f.media(10);
-    dist[2] = direita_t.media(10);
-    dist[3] = tras.media(10);
-    dist[4] = esquerda_t.media(10);
-    dist[5] = esquerda_f.media(10);
+    dist[0] = frente.media(5);
+    dist[1] = direita_f.media(5);
+    dist[2] = direita_t.media(5);
+    //dist[3] = tras.media(15);
+    dist[4] = esquerda_t.media(5);
+    dist[5] = esquerda_f.media(5);
+    
   }
 
   /*Recebe em um array com o endereço dos sensores que devem ser lidos*/

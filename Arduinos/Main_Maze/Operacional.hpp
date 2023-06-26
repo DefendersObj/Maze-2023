@@ -65,8 +65,10 @@ public:
 
   /******************** DISTANCIAS **********************/
 
-  float correction_angle = 0;
+  float correction_angle = 0.0;
   float trajetoria = 30.0;
+  float lateral_dist = 0.0;
+  float first_correction = 0.0;
   bool passagens[4];
 
   /*! Verifica a existencia de passagens nas quatro direcoes*/
@@ -79,7 +81,7 @@ public:
   }
 
   /*! Estima o angulo atual com base em dois valores de distancia*/
-  float angulo() {
+  void angulo() {
 
     sensores.ler_dist();
     float df = sensores.dist[1],
@@ -93,7 +95,7 @@ public:
 
     bool lado = false;
 
-    //Decidimos qual lado do robo e o mais proximo para medir o angulo
+    //Decidimos qual lado tem menores diferenças para medir o angulo
     if (abs(ef - et) <= abs(df - dt)) {
       frente = ef;
       tras = et;
@@ -101,7 +103,7 @@ public:
       Serial.print("lado esquerdo escolhido: ");
       Serial.print("frontal: ");
       Serial.print(frente);
-      Serial.print(" trazeiro: ");
+      Serial.print(" traseiro: ");
       Serial.println(tras);
 
 
@@ -111,7 +113,7 @@ public:
       Serial.print("lado direito escolhido: ");
       Serial.print("frontal: ");
       Serial.print(frente);
-      Serial.print(" trazeiro: ");
+      Serial.print(" traseiro: ");
       Serial.println(tras);
     }
 
@@ -124,6 +126,11 @@ public:
 
     //Filtro
     angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
+    lateral_dist = cos(angulo / (180.0 / M_PI)) * ((frente + tras) / 2.0);
+    lateral_dist = 7.0 - fmod(lateral_dist, 30.0);
+    if (!lado) {
+      lateral_dist *= -1.0;
+    }
     /*if (frente <= 45.0 && tras <= 45.0) {
     
     } else {
@@ -138,9 +145,12 @@ public:
       angulo = angulo * -1.0;
     }
 
+    first_correction = angulo;
+
     Serial.print("Angulo correcao: ");
     Serial.println(angulo);
-    return angulo;
+    Serial.print("lateral dist/teste: ");
+    Serial.println(lateral_dist);
   }
 
 
@@ -280,10 +290,13 @@ public:
     int aux[1] = { 0 };
 
     sensores.ler_dist_rapido(aux);
+    delay(5);
 
     // Troca pelas distancias
     if (sensores.dist[0] <= 7.5 && sensores.dist[0] != 0.0) {
-      Serial.println("Troquei pela distancia");
+      
+      Serial.print("Troquei pela distancia: ");
+      Serial.println(sensores.dist[0]);
       return true;
 
       // Troca pelo Encoder
@@ -299,47 +312,37 @@ public:
   }
 
   /************************************ CORREÇÃO ******************************************/
-
-  /*Correcao do angulo do robo a cada parada*/
-  void correcao() {
-    float ang = angulo();
-    //Parte 1, alinha o robo com a parede
-    //Ajuste para esquerda
-    if (ang <= -2.0 && ang >= -20.0) {
-      girar(200, ang);
-    }
-    //Ajuste para direita
-    else if (ang >= 2.0 && ang <= 20.0) {
-      girar(200, ang);
-    }
-  }
+ 
 
   /*Tendo a distancia nescessaria para atingir o centro do proximo quadrado,
    e o angulo que devemos manter para alcancala, esta funcao ajusta o robo no dado angulo, e atualiza a distancia
    nescessaria para a troca pelo encoder*/
   void correcao_trajetoria() {
-    if (correction_angle < -2.0 && correction_angle > -30.0) girar(200, correction_angle);
-    else if (correction_angle > 2.0 && correction_angle < 30.0) girar(200, correction_angle);
+    float correction = correction_angle + first_correction;
+    if (correction < -2.0 && correction > -30.0) girar(200, correction);
+    else if (correction > 2.0 && correction < 30.0) girar(200, correction);
   }
 
   /*Cálculo do comprimento da nova trajetória */
   void calcular_trajetoria() {
-
-    sensores.ler_dist();
-    float cateto;
     trajetoria = 30.0;
 
+    /*
+    sensores.ler_dist();
+    float cateto;
+    
 
-    //Escolhemos a parede mas proxima para estimar a nova trajetoria, eaplicamos um filtro
-    if (abs(sensores.dist[1] - sensores.dist[2]) < abs(sensores.dist[4] - sensores.dist[5])) {  //Próximo da Direita
+
+    //Escolhemos a parede com menor diferença para a nova trajetoria, e aplicamos um filtro
+    if (abs(sensores.dist[1] - sensores.dist[2]) < abs(sensores.dist[4] - sensores.dist[5]) && sensores.dist[1] <= 50.0 && sensores.dist[2] <= 50.0) {  //Próximo da Direita
       cateto = -(7 - fmod(((sensores.dist[1] + sensores.dist[2]) / 2), 30.0));
       Serial.print("correcao de trajetoria, lado direito: frontal: ");
       Serial.print(sensores.dist[1]);
-      Serial.print(" trazeiro: ");
+      Serial.print(" traseiro: ");
       Serial.println(sensores.dist[2]);
     }
-
-    else {  //Próximo da Esquerda
+    //Só aplicamos o filtro
+    else if (sensores.dist[5] <= 50.0 && sensores.dist[4] <= 50.0) {  //Próximo da Esquerda
       cateto = (7 - fmod(((sensores.dist[5] + sensores.dist[4]) / 2), 30.0));
       Serial.print("correcao de trajetoria, lado esquerdo: frontal: ");
       Serial.print(sensores.dist[5]);
@@ -347,16 +350,31 @@ public:
       Serial.println(sensores.dist[4]);
     }
     //Caso nao nescessite de correcao
-
+*/
     //Nova distancia a ser percorrida (Deve ser passada para a troca)
-    trajetoria = sqrt(pow(cateto, 2) + pow(30.0, 2));
-    correction_angle = atan(cateto / 30.0) * (180.0 / M_PI);
+    trajetoria = sqrt(pow(lateral_dist, 2) + pow(30.0, 2));
+    correction_angle = atan(lateral_dist / 30.0) * (180.0 / M_PI);
     Serial.print("desalinhamento lateral: ");
-    Serial.println(cateto);
+    Serial.println(lateral_dist);
     Serial.print("Trajetoria: ");
     Serial.println(trajetoria);
     Serial.print("Angulo trajetoria: ");
     Serial.println(correction_angle);
+  }
+  /********************** LED RESGATE *********************/
+  int ledpin = 11;
+
+  /*Inicia o LED*/
+  void begin_LED() {
+    pinMode(ledpin, OUTPUT);
+  }
+
+  void ligaLED() {
+    digitalWrite(ledpin, HIGH);
+  }
+
+  void desligaLED() {
+    digitalWrite(ledpin, LOW);
   }
   /********************** Servos *************************/
 
@@ -378,7 +396,7 @@ public:
 
   /*Realiza as movimentacoes da camera*/
   void move_camera(char com) {
-    if (com == 'E') servo_camera.write(36);  //Ajustar
+    if (com == 'E') servo_camera.write(36);       //Ajustar
     else if (com == 'F') servo_camera.write(36);  //Ajustar
     else if (com == 'D') servo_camera.write(36);  //Ajustar
   }
@@ -411,7 +429,7 @@ public:
       //Gira o robo para realizar o resgate
       girar(500, 90.0);
 
-        while (aux < kits) {
+      while (aux < kits) {
         servo_resgate.write(36);  //Abre para o lado direito
         delay(100);
         servo_resgate.write(36);  //Posicao de repouso
@@ -423,35 +441,37 @@ public:
     }
   }
 
-  /************************************************************************************ COMANDOS *********************************************************************************************************/
+  /**************************************************************** COMANDOS ******************************************************************************/
   /*! Realiza todas inicializações*/
   void iniciar() {
     sensores.begin_mpu();
     servos_begin();
+    // LED utilizado no Resgate
+    begin_LED();
+    // Começamos com ele desligado
+    desligaLED();
   }
 
+
+  int kits = 9;
+  char lado = 'E';
+
   /*! Movimentamos 1 quadrado para Frente */
-  void frente(int ori, bool busca) {
+  void frente() {
 
     //Cordenadas de inicio
     //mapa.save_cord();
+    setar_quadrado();
     zerar_mpu();
     setar_quadrado();
 
-    //Ajusta o robo no próprio eixo
-    correcao();
+
+    //Calcula e orienta uma nova trajetoria
+    angulo();
     calcular_trajetoria();
     correcao_trajetoria();
     sensores.zerar_encoder();
 
-    //Parametros para troca
-    //setar_quadrado(dist[0], dist[3]);
-
-
-
-    //while(1){
-    //Serial.println(sensores.passos);
-    //}
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
@@ -463,10 +483,19 @@ public:
     }
 
     parar();
+
     //Desvira
     if (correction_angle <= 30.0 && correction_angle >= -30.0) {
       girar(200, -correction_angle);
     }
+
+    //Caso tenhamos encontrado uma vítima realizamos seu resgate
+    if (kits != 9) {  // 9 = nenhuma vitima
+      ligaLED();
+      resgate(kits, lado);
+      desligaLED();
+    }
+
     //op.medir_passagens();
     //mapa.recebe_passagens_cor(op.passagens, op.cor());
     //mapa.orientacao(ori);
@@ -477,6 +506,30 @@ public:
 
   /*! Busca vitimas com a camera*/
   void buscar_vit() {
+
+    move_camera('E');
+    com.envia_lado('L');  //Envia lado obeservado para OpenMV / Left
+    kits = com.kits();
+    if (kits != 9) {
+      lado = 'E';
+      return;
+    }
+
+    move_camera('F');
+    com.envia_lado('F');  //Front
+    kits = com.kits();
+    if (kits != 9) {
+      lado = 'F';
+      return;
+    }
+
+    move_camera('D');
+    com.envia_lado('R');  //Right
+    kits = com.kits();
+    if (kits != 9) {
+      lado = 'D';
+      return;
+    }
   }
 };
 #endif
