@@ -1,8 +1,8 @@
 #ifndef Sensores_hpp
 #define Sensores_hpp
 
-#include <MPU6050.h>           /*!< Inclusão da biblioteca do MPU */
-#include "Ultrassonico.hpp"    /*!< Inclusão da classe dos Ultrassonicos */
+#include <MPU6050.h>        /*!< Inclusão da biblioteca do MPU */
+#include "Ultrassonico.hpp" /*!< Inclusão da classe dos Ultrassonicos */
 
 #define OFFSET 0.91        //0.88 /*!< Valor de correcao para MPU */
 #define DIMENSIONAL 1.014  // 6.8  /*!< Constante de correcao para MPU*/
@@ -48,7 +48,6 @@ public:
     //dist[3] = tras.media(15);
     dist[4] = esquerda_t.media(5);
     dist[5] = esquerda_f.media(5);
-    
   }
 
   /*Recebe em um array com o endereço dos sensores que devem ser lidos*/
@@ -126,7 +125,7 @@ public:
   }
 
   /*!< Funcao que le a inclincao em relacao ao solo com MPU*/
-  void inclinacao_mpu() {
+  float inclinacao_mpu() {
     static int count = 0;
 
     float x_value = gyroscope.x_accel();
@@ -134,10 +133,15 @@ public:
 
     float teta = atan(x_value / z_value) * 180 / PI;  //Formula para o angulo de inclinacao
 
-    if (count >= 100) {
+    Serial.print("Acel X: ");
+    Serial.print(gyroscope.x_accel());
+    Serial.print(" Acel Z: ");
+    Serial.println(gyroscope.z_accel());
+    return teta;
+    /*if (count >= 100) {
       count = 0;
     } else if (teta <= 0) count++;
-    else count = 0;
+    else count = 0;*/
   }
 
   /****************** ENCODER *******************/
@@ -150,6 +154,5 @@ public:
     passos = 0;
     passos_cm = 0.0;
   }
-
 };
 #endif

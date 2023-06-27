@@ -294,7 +294,7 @@ public:
 
     // Troca pelas distancias
     if (sensores.dist[0] <= 7.5 && sensores.dist[0] != 0.0) {
-      
+
       Serial.print("Troquei pela distancia: ");
       Serial.println(sensores.dist[0]);
       return true;
@@ -312,7 +312,7 @@ public:
   }
 
   /************************************ CORREÇÃO ******************************************/
- 
+
 
   /*Tendo a distancia nescessaria para atingir o centro do proximo quadrado,
    e o angulo que devemos manter para alcancala, esta funcao ajusta o robo no dado angulo, e atualiza a distancia
@@ -361,20 +361,29 @@ public:
     Serial.print("Angulo trajetoria: ");
     Serial.println(correction_angle);
   }
-  /********************** LED RESGATE *********************/
-  int ledpin = 11;
+  /********************** LEDS *********************/
+  int led_resgate = 51;
+  int led_sinal = 53;
 
   /*Inicia o LED*/
   void begin_LED() {
-    pinMode(ledpin, OUTPUT);
+    pinMode(led_resgate, OUTPUT);
+    pinMode(led_sinal, OUTPUT);
   }
 
-  void ligaLED() {
-    digitalWrite(ledpin, HIGH);
+  void ligaLED_resgate() {
+    digitalWrite(led_resgate, HIGH);
   }
 
-  void desligaLED() {
-    digitalWrite(ledpin, LOW);
+  void desligaLED_resgate() {
+    digitalWrite(led_resgate, LOW);
+  }
+  void ligaLED_sinal() {
+    digitalWrite(led_sinal, HIGH);
+  }
+
+  void desligaLED_sinal() {
+    digitalWrite(led_sinal, LOW);
   }
   /********************** Servos *************************/
 
@@ -385,20 +394,20 @@ public:
   /*Inicializa os Servos*/
   void servos_begin() {
     // Inicia os servos
-    servo_camera.attach(9);
-    servo_resgate.attach(11);
+    servo_camera.attach(43);
+    servo_resgate.attach(45);
     servo_frontal.attach(41);
     //Posicoes iniciais
     servo_frontal.write(36);
     servo_resgate.write(36);
-    servo_camera.write(36);
+    servo_camera.write(100);
   }
 
   /*Realiza as movimentacoes da camera*/
   void move_camera(char com) {
-    if (com == 'E') servo_camera.write(36);       //Ajustar
-    else if (com == 'F') servo_camera.write(36);  //Ajustar
-    else if (com == 'D') servo_camera.write(36);  //Ajustar
+    if (com == 'E') servo_camera.write(100);      //Ajustar
+    else if (com == 'F') servo_camera.write(60);  //Ajustar
+    else if (com == 'D') servo_camera.write(30);  //Ajustar
   }
 
   /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
@@ -446,25 +455,23 @@ public:
   void iniciar() {
     sensores.begin_mpu();
     servos_begin();
-    // LED utilizado no Resgate
+    //
     begin_LED();
-    // Começamos com ele desligado
-    desligaLED();
+    // Coomeçam desligados
+    ligaLED_sinal();
+    ligaLED_resgate();
   }
 
 
-  int kits = 9;
-  char lado = 'E';
+  int _kits = 9;
+  char _lado;
 
-  /*! Movimentamos 1 quadrado para Frente */
-  void frente() {
+  /*! Movimentamos 1 quadrado para Frente e buscamos por vitimas */
+  void frente(bool busca = false) {
 
-    //Cordenadas de inicio
-    //mapa.save_cord();
     setar_quadrado();
     zerar_mpu();
     setar_quadrado();
-
 
     //Calcula e orienta uma nova trajetoria
     angulo();
@@ -472,10 +479,12 @@ public:
     correcao_trajetoria();
     sensores.zerar_encoder();
 
+    //Procura por vítimas no quadrado da frente
+    if(busca = true) buscar_vit();
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
-
+      Serial.println(sensores.passos_cm);
       //Busca mudancas nas paredes laterais para uma troca mais precisa
       trajetoria_por_parede();
       movimento(500);
@@ -490,17 +499,11 @@ public:
     }
 
     //Caso tenhamos encontrado uma vítima realizamos seu resgate
-    if (kits != 9) {  // 9 = nenhuma vitima
-      ligaLED();
-      resgate(kits, lado);
-      desligaLED();
+    if (_kits != 9) {  // 9 = nenhuma vitima
+      ligaLED_resgate();
+      resgate(_kits, _lado);
+      desligaLED_resgate();
     }
-
-    //op.medir_passagens();
-    //mapa.recebe_passagens_cor(op.passagens, op.cor());
-    //mapa.orientacao(ori);
-    //mapa.move_cordenada(false, false);
-    //mapa.imprimir();
   }
 
 
@@ -508,28 +511,31 @@ public:
   void buscar_vit() {
 
     move_camera('E');
-    com.envia_lado('L');  //Envia lado obeservado para OpenMV / Left
-    kits = com.kits();
-    if (kits != 9) {
-      lado = 'E';
+    //com.envia_lado('L');  //Envia lado obeservado para OpenMV / Left
+    //_kits = com.kits();
+    if (_kits != 9) {
+      _lado = 'E';
       return;
     }
+    delay(2000);
 
     move_camera('F');
-    com.envia_lado('F');  //Front
-    kits = com.kits();
-    if (kits != 9) {
-      lado = 'F';
+    //com.envia_lado('F');  //Front
+    //_kits = com.kits();
+    if (_kits != 9) {
+      _lado = 'F';
       return;
     }
+    delay(2000);
 
     move_camera('D');
-    com.envia_lado('R');  //Right
-    kits = com.kits();
-    if (kits != 9) {
-      lado = 'D';
+    //com.envia_lado('R');  //Right
+    //_kits = com.kits();
+    if (_kits != 9) {
+      _lado = 'D';
       return;
     }
+    delay(2000);
   }
 };
 #endif

@@ -13,16 +13,19 @@ class Navegacao {
 
 private:
 
+  /*A pilha contém 100 linhas e 2 colunas, armazenando cordenadas X,Y*/
   uint8_t pilha[100][2];
   uint8_t _pilha_x, _pilha_y;
-  unsigned int _pilha_control = 0;
+  unsigned int _pilha_control = 0; //Controle de qual posição da pilha estamos 
 
+  /*Recebe as cordenadas x e y de um nó e adiciona na pilha*/
   void put_node(uint8_t i, uint8_t j) {
     pilha[_pilha_control][0] = i;
     pilha[_pilha_control][1] = j;
     _pilha_control++;
   }
 
+  /*Retiramos o nó do topo da pilha para analise*/
   void get_node() {
     _pilha_control--;
     _pilha_x = pilha[_pilha_control][0];
@@ -30,44 +33,61 @@ private:
   }
 
 public:
-  uint8_t X = 2, Y = 9, orientation = 0;
 
+  /*Cordenadas e orientação inicial*/
+  uint8_t X = 0, Y = 0, orientation = 0;
+
+  /*Atualiza o mapa*/
   void update_map() {
     sensores.ler_dist();
     byte no = 0;
 
     //ler cor
+    //Atualiza a cor
     mapa.set_color(X, Y, 'w');
 
     uint8_t passagens = 0;
+
+    //Procura por passagens nas quatros direções.
+    //Caso o quadrado tenha mais de duas passagen salvamos suas coordenadas como nó
+    //Norte
     if (sensores.dist[0] > 20.0) {
       passagens |= 0b00000001;
       no++;
     }
+    //Leste
     if (sensores.dist[1] > 20.0) {
       passagens |= 0b00000010;
       no++;
     }
+    //Sul
     if (1) {
       passagens |= 0b00000100;
       no++;
     }
+    //Oeste
     if (sensores.dist[5] > 20.0) {
       passagens |= 0b00001000;
       no++;
     }
     if (no > 2) put_node(X, Y);
 
+    //Setamos as passagens do quadrado no mapa
     mapa.set_passages(X, Y, passagens, orientation);
   }
 
+  /*Estágio 1 da Decisão, neste estagio fazemos uma busca apenas nos limites do quadrado atual.
+  Priorizando a movimentação em direção ao Norte do mapa e sentido horário, até que nao existam quadrados não visitados nas redondezas
+  imediatas do robô*/
   char decisao() {
+    //Puxamos as informações do quadrado atual
     mapa.get_info(X, Y);
 
     bool passagens[4];
 
     for (int i = 0; i < 4; i++) passagens[i] = mapa.Passages[i];
 
+    //Norte
     if (passagens[0]) {
       mapa.get_info(X, Y + 1);
       if (mapa.Color == 'u') {
@@ -89,7 +109,7 @@ public:
         }
       }
     }
-
+    //Leste
     if (passagens[1]) {
       mapa.get_info(X + 1, Y);
       if (mapa.Color == 'u') {
@@ -112,6 +132,7 @@ public:
       }
     }
 
+    //Sul
     if (passagens[2]) {
       mapa.get_info(X, Y - 1);
       if (mapa.Color == 'u') {
@@ -134,6 +155,7 @@ public:
       }
     }
 
+    //Oeste
     if (passagens[3]) {
       mapa.get_info(X - 1, Y);
       if (mapa.Color == 'u') {
@@ -156,8 +178,8 @@ public:
       }
     }
 
+    //Caso não tenha mais quadrados nas redondezas imediatas, retorna 'L'
     return 'L';
   }
-}
-;
+};
 #endif
