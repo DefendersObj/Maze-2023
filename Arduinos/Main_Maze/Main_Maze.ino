@@ -37,20 +37,21 @@ void setup() {
 
   Serial.println("Iniciei");
   /*!< Inicializacoes nescessarias >!*/
+  op.iniciar();
   /*Encoder*/
   pinMode(5, INPUT);
   attachInterrupt(digitalPinToInterrupt(5), ler_encoder, CHANGE);
-  op.iniciar();
   Serial.println("1");
   /*Botão*/
-  /*pinMode(12, INPUT);
   Serial.println("2");
+  //pinMode(12, INPUT);
   attachInterrupt(digitalPinToInterrupt(12), resetar, FALLING);
-  Serial.println("3");*/
+  Serial.println("3");
 }
 
 /************ Inicio do Loop *************/
 void loop() {
+
   Serial.println(".");
 
   /*LEDs Ligados enquanto o robo espera ser iniciado pelo botão*/
@@ -60,13 +61,11 @@ void loop() {
   /*Só inicia caso o botão seja pressionado*/
   if (reset) {
 
-    /*Desliga os LEDs de resgate para a rodada*/
+    /*Desliga o LED de resgate para a rodada*/
     op.desligaLED_resgate();
-    while (1) {
-      Serial.print("Inclinação: ");
-      Serial.println(sensores.inclinacao_mpu());
-      Serial.println("-----------");
-    }
+
+    //Teste
+  
     /*Loop de execução do código*/
     while (reset == true) {  //Caso  botão de reset seja pressionado, sai do loop
       Serial.println("1");
@@ -79,6 +78,7 @@ void loop() {
         Serial.println("3");
         com = navegacao.decisao();
         ler_comando(com);
+        if(com == 'L')navegacao.last_node();
       }
     }
     //Código de reset do mapa
@@ -104,7 +104,7 @@ char comando_manual() {
 void ler_comando(char com) {
   if (com == 'F') {
     delay(300);
-    op.frente(true);
+    op.frente();
     Serial.println("Frente!!");
   }
   //Start

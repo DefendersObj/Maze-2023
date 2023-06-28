@@ -2,7 +2,7 @@
 #define Mapa_hpp
 
 //Tamanho do mapa
-#define SIZE 10
+#define SIZE 45
 
 //Cordenadas do robo
 

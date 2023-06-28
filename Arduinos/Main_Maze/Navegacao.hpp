@@ -5,6 +5,8 @@
 
 #include "Operacional.hpp"
 #include "Mapa.hpp"
+#define START_POINT_X 22
+#define START_POINT_Y 22
 
 Operacional op;
 Mapa mapa;
@@ -16,7 +18,8 @@ private:
   /*A pilha contém 100 linhas e 2 colunas, armazenando cordenadas X,Y*/
   uint8_t pilha[100][2];
   uint8_t _pilha_x, _pilha_y;
-  unsigned int _pilha_control = 0; //Controle de qual posição da pilha estamos 
+  unsigned int _pilha_control = 0;  //Controle de qual posição da pilha estamos
+  uint8_t _next_x, _next_y;
 
   /*Recebe as cordenadas x e y de um nó e adiciona na pilha*/
   void put_node(uint8_t i, uint8_t j) {
@@ -32,10 +35,45 @@ private:
     _pilha_y = pilha[_pilha_control][1];
   }
 
+
+  unsigned int _stack_control = 0;
+  uint8_t _stack_x, _stack_y;
+  uint8_t _stack[100][2];
+
+  void set_stack(uint8_t i, uint8_t j) {
+    _stack[_stack_control][0] = i;
+    _stack[_stack_control][1] = j;
+    _stack_control++;
+  }
+
+  void get_stack() {
+    _stack_control--;
+    _stack_x = _stack[_stack_control][0];
+    _stack_y = _stack[_stack_control][1];
+  }
+
+  bool find_stack(uint8_t i, uint8_t j) {
+
+    for (unsigned int passo; passo < _stack_control; passo++) {
+      if (_stack[passo][0] == i && _stack[passo][1] == j) return true;
+    }
+
+    return false;
+  }
+
+  void dump_stack() {
+    for (unsigned int passo; passo < _stack_control; passo++) {
+      Serial.print("x: ");
+      Serial.print(_stack[passo][0]);
+      Serial.print(" y: ");
+      Serial.println(_stack[passo][1]);
+    }
+  }
+
 public:
 
   /*Cordenadas e orientação inicial*/
-  uint8_t X = 0, Y = 0, orientation = 0;
+  uint8_t X = START_POINT_X, Y = START_POINT_Y, orientation = 0;
 
   /*Atualiza o mapa*/
   void update_map() {
@@ -180,6 +218,99 @@ public:
 
     //Caso não tenha mais quadrados nas redondezas imediatas, retorna 'L'
     return 'L';
+  }
+
+  /*Estágio 2 da Navegação*/
+  void last_node() {
+    while (1) {
+      if (_pilha_control == 0) {
+        _next_x = START_POINT_X;
+        _next_y = START_POINT_Y;
+        return;
+      }
+
+      get_node();
+
+      mapa.get_info(_pilha_x, _pilha_y);
+
+      bool passagens[4];
+      for (int i = 0; i < 4; i++) passagens[i] = mapa.Passages[i];
+
+      if (passagens[0]) {
+        mapa.get_info(_pilha_x, _pilha_y + 1);
+        if (mapa.Color == 'u') {
+          break;
+        }
+      }
+      //Leste
+      if (passagens[1]) {
+        mapa.get_info(_pilha_x + 1, _pilha_y);
+        if (mapa.Color == 'u') {
+          break;
+        }
+      }
+
+      //Sul
+      if (passagens[2]) {
+        mapa.get_info(_pilha_x, _pilha_y - 1);
+        if (mapa.Color == 'u') {
+          break;
+        }
+      }
+
+      //Oeste
+      if (passagens[3]) {
+        mapa.get_info(_pilha_x - 1, _pilha_y);
+        if (mapa.Color == 'u') {
+          break;
+        }
+      }
+    }
+    put_node(_pilha_x, _pilha_y);
+    _next_x = _pilha_x;
+    _next_y = _pilha_y;
+    Serial.print("node x: ");
+    Serial.print(_next_x);
+    Serial.print(" node y: ");
+    Serial.println(_next_y);
+  }
+
+  uint8_t calc_route(uint8_t x, uint8_t y) {
+    mapa.get_info(x, y);
+
+    bool passagens[4];
+    for (int i = 0; i < 4; i++) passagens[i] = mapa.Passages[i];
+    float dist[4];
+
+    if (passagens[0]) {
+      mapa.get_info(x, y + 1);
+      if (mapa.Color != 'u' && mapa.Color != 'b') {
+        dist[0] = sqrt(pow(_next_x - x, 2) + pow(_next_y - (y + 1), 2));
+      }
+    }
+    //Leste
+    if (passagens[1]) {
+      mapa.get_info(x + 1, y);
+      if (mapa.Color != 'u' && mapa.Color != 'b') {
+        dist[1] = sqrt(pow(_next_x - (x + 1), 2) + pow(_next_y - y, 2));
+      }
+    }
+
+    //Sul
+    if (passagens[2]) {
+      mapa.get_info(x, y - 1);
+      if (mapa.Color != 'u' && mapa.Color != 'b') {
+        dist[2] = sqrt(pow(_next_x - x, 2) + pow(_next_y - (y - 1), 2));
+      }
+    }
+
+    //Oeste
+    if (passagens[3]) {
+      mapa.get_info(x - 1, y);
+      if (mapa.Color != 'u' && mapa.Color != 'b') {
+        dist[3] = sqrt(pow(_next_x - (x - 1), 2) + pow(_next_y - y, 2));
+      }
+    }
   }
 };
 #endif

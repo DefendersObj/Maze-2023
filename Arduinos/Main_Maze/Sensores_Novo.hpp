@@ -133,7 +133,8 @@ public:
 
     float teta = atan(x_value / z_value) * 180 / PI;  //Formula para o angulo de inclinacao
 
-    Serial.print("Acel X: ");
+    Serial.print(teta);
+    Serial.print(" Acel X: ");
     Serial.print(gyroscope.x_accel());
     Serial.print(" Acel Z: ");
     Serial.println(gyroscope.z_accel());

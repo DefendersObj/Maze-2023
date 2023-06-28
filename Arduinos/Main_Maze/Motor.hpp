@@ -32,5 +32,9 @@ public:
     //Comunica valores dos motores paara o Mega
     com.envio_motores(vel);
   }
+
+  void parar(){
+    mesma_potencia(0);
+  }
 };
 #endif
