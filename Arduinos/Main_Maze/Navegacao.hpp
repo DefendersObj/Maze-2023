@@ -37,7 +37,6 @@ private:
 
 
   unsigned int _stack_control = 0;
-  uint8_t _stack_x, _stack_y;
   uint8_t _stack[100][2];
 
   void set_stack(uint8_t i, uint8_t j) {
@@ -48,8 +47,6 @@ private:
 
   void get_stack() {
     _stack_control--;
-    _stack_x = _stack[_stack_control][0];
-    _stack_y = _stack[_stack_control][1];
   }
 
   bool find_stack(uint8_t i, uint8_t j) {
@@ -61,16 +58,83 @@ private:
     return false;
   }
 
+
+
+public:
+
+
+  char _commands[500];
   void dump_stack() {
-    for (unsigned int passo; passo < _stack_control; passo++) {
+    uint16_t string_control = 0;
+
+    for (unsigned int passo = 0; passo < _stack_control; passo++) {
       Serial.print("x: ");
       Serial.print(_stack[passo][0]);
       Serial.print(" y: ");
       Serial.println(_stack[passo][1]);
     }
+    for (unsigned int i = 1; i < _stack_control; i++) {
+      int8_t x = _stack[i][0] - _stack[i - 1][0];
+      int8_t y = _stack[i][1] - _stack[i - 1][1];
+      uint8_t new_orientation;
+
+      if (x == 1) new_orientation = 1;
+      else if (x == -1) new_orientation = 3;
+      else if (y == 1) new_orientation = 0;
+      else if (y == -1) new_orientation = 2;
+
+      if (orientation == 0) {
+        if (new_orientation == 1)
+          _commands[string_control] = 'D';
+        else if (new_orientation == 2)
+          _commands[string_control] = 'T';
+        else if (new_orientation == 3)
+          _commands[string_control] = 'E';
+
+        if (new_orientation != 0) string_control++;
+      } else if (orientation == 1) {
+        if (new_orientation == 0)
+          _commands[string_control] = 'E';
+        else if (new_orientation == 2)
+          _commands[string_control] = 'D';
+        else if (new_orientation == 3)
+          _commands[string_control] = 'T';
+
+        if (new_orientation != 1) string_control++;
+      } else if (orientation == 2) {
+        if (new_orientation == 0)
+          _commands[string_control] = 'T';
+        else if (new_orientation == 1)
+          _commands[string_control] = 'E';
+        else if (new_orientation == 3)
+          _commands[string_control] = 'D';
+
+        if (new_orientation != 2) string_control++;
+      } else if (orientation == 3) {
+        if (new_orientation == 0)
+          _commands[string_control] = 'D';
+        else if (new_orientation == 1)
+          _commands[string_control] = 'T';
+        else if (new_orientation == 2)
+          _commands[string_control] = 'E';
+
+        if (new_orientation != 3) string_control++;
+      }
+
+      orientation = new_orientation;
+
+      _commands[string_control] = 'F';
+      string_control++;
+    }
+    _commands[string_control] = '\0';
+    X = _next_x;
+    Y = _next_y;
+    for (unsigned int i = 0; i <= string_control; i++) Serial.println(_commands[i]);
+    Serial.println(string_control);
+
+    _stack_control = 0;
   }
 
-public:
 
   /*Cordenadas e orientação inicial*/
   uint8_t X = START_POINT_X, Y = START_POINT_Y, orientation = 0;
@@ -276,41 +340,107 @@ public:
   }
 
   uint8_t calc_route(uint8_t x, uint8_t y) {
+    Serial.println("----------------");
+    Serial.print("x: ");
+    Serial.print(x);
+    Serial.print(" y: ");
+    Serial.println(y);
+
+    if (x == _next_x && y == _next_y) {
+      set_stack(x, y);
+      return 0;
+    }
+
     mapa.get_info(x, y);
 
     bool passagens[4];
     for (int i = 0; i < 4; i++) passagens[i] = mapa.Passages[i];
-    float dist[4];
+
+    float dist[4] = { 1000.0, 1000.0, 1000.0, 1000.0 };
 
     if (passagens[0]) {
       mapa.get_info(x, y + 1);
-      if (mapa.Color != 'u' && mapa.Color != 'b') {
-        dist[0] = sqrt(pow(_next_x - x, 2) + pow(_next_y - (y + 1), 2));
+      if (mapa.Color != 'u' && mapa.Color != 'b' && !find_stack(x, y + 1)) {
+        dist[0] = sqrt(pow((float)(_next_x - x), 2) + pow((float)(_next_y - (y + 1)), 2));
       }
     }
     //Leste
     if (passagens[1]) {
       mapa.get_info(x + 1, y);
-      if (mapa.Color != 'u' && mapa.Color != 'b') {
-        dist[1] = sqrt(pow(_next_x - (x + 1), 2) + pow(_next_y - y, 2));
+      if (mapa.Color != 'u' && mapa.Color != 'b' && !find_stack(x + 1, y)) {
+        dist[1] = sqrt(pow((float)(_next_x - (x + 1)), 2) + pow((float)(_next_y - y), 2));
       }
     }
 
     //Sul
     if (passagens[2]) {
       mapa.get_info(x, y - 1);
-      if (mapa.Color != 'u' && mapa.Color != 'b') {
-        dist[2] = sqrt(pow(_next_x - x, 2) + pow(_next_y - (y - 1), 2));
+      if (mapa.Color != 'u' && mapa.Color != 'b' && !find_stack(x, y - 1)) {
+        dist[2] = sqrt(pow((float)(_next_x - x), 2) + pow((float)(_next_y - (y - 1)), 2));
       }
     }
 
     //Oeste
     if (passagens[3]) {
       mapa.get_info(x - 1, y);
-      if (mapa.Color != 'u' && mapa.Color != 'b') {
-        dist[3] = sqrt(pow(_next_x - (x - 1), 2) + pow(_next_y - y, 2));
+      if (mapa.Color != 'u' && mapa.Color != 'b' && !find_stack(x - 1, y)) {
+        dist[3] = sqrt(pow((float)(_next_x - (x - 1)), 2) + pow((float)(_next_y - y), 2));
       }
     }
+
+
+    uint8_t sequence[4] = { 4, 4, 4, 4 };
+    for (uint8_t i = 0; i < 4; i++) {
+      Serial.print("dist ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(dist[i]);
+      Serial.println(" ");
+    }
+
+
+    for (uint8_t j = 0; j < 4; j++) {
+      float minimum = 1000.0;
+      for (uint8_t i = 0; i < 4; i++) {
+        minimum = min(minimum, dist[i]);
+      }
+      for (uint8_t i = 0; i < 4; i++) {
+        if (minimum == dist[i] && minimum != 1000.0) {
+          sequence[j] = i;
+          dist[i] = 1000.0;
+        }
+      }
+    }
+
+    for (uint8_t i = 0; i < 4; i++) {
+      Serial.print("sequencia ");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(sequence[i]);
+      Serial.println(" ");
+    }
+
+    set_stack(x, y);
+
+    for (uint8_t i = 0; i < 4; i++) {
+      if (sequence[i] == 4) {
+        get_stack();
+        return 1;
+      }
+      if (sequence[i] == 0) {
+        if (calc_route(x, y + 1) == 0) return 0;
+      } else if (sequence[i] == 1) {
+        if (calc_route(x + 1, y) == 0) return 0;
+      } else if (sequence[i] == 2) {
+        if (calc_route(x, y - 1) == 0) return 0;
+      } else if (sequence[i] == 3) {
+        if (calc_route(x - 1, y) == 0) return 0;
+      }
+    }
+
+
+    get_stack();
+    return 1;
   }
 };
 #endif

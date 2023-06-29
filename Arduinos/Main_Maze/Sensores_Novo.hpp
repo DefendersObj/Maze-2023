@@ -4,6 +4,7 @@
 #include <MPU6050.h>        /*!< Inclusão da biblioteca do MPU */
 #include "Ultrassonico.hpp" /*!< Inclusão da classe dos Ultrassonicos */
 
+
 #define OFFSET 0.91        //0.88 /*!< Valor de correcao para MPU */
 #define DIMENSIONAL 1.014  // 6.8  /*!< Constante de correcao para MPU*/
 
