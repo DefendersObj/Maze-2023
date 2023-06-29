@@ -18,6 +18,8 @@
 #include <Servo.h>
 #include "Cor.hpp"
 
+#define ENCODER_CONSTANT 0.78530
+
 
 
 //Comunicacao com_;
@@ -56,7 +58,6 @@ void setup() {
 /************ Inicio do Loop *************/
 void loop() {
 
-  teste();
   Serial.println(".");
 
   /*LEDs Ligados enquanto o robo espera ser iniciado pelo botão*/
@@ -148,7 +149,7 @@ void ler_comando(char com) {
 /*! Le o encoder via interrupcao e converte ele para centimetros*/
 void ler_encoder() {
   sensores.passos++;
-  sensores.passos_cm = sensores.passos * 0.78530;  //0.78530;
+  sensores.passos_cm = sensores.passos * ENCODER_CONSTANT;  //0.78530;
 }
 
 /*!Verifica o botão atraves de interrupção*/
@@ -158,87 +159,3 @@ void resetar() {
   delay(1000);
 }
 
-
-void teste() {
-  int sen[] = { 4 };
-  int controle = 0;
-  float leituras[10];
-  sensores.zerar_encoder();
-  unsigned int last_passo = sensores.passos;
-  while (sensores.passos < 10) {
-    op.movimento();
-    if (last_passo != sensores.passos) {
-      sensores.ler_dist_rapido(sen);
-      leituras[controle] = sensores.dist[4];
-      controle++;
-      last_passo = sensores.passos;
-    }
-  }
-  motores.parar();
-
-  for (int x = 0; x < 10; x++) {
-    Serial.println(leituras[x]);
-  }
-  float b1 = 0, b2 = 0, b3 = 0, b4 = 0;
-
-  for (float x = 1; x <= 10; x++) {
-    b1 += (x * 0.78530) * leituras[(int)x - 1];
-    b2 += (x * 0.78530);
-    b3 += leituras[(int)x - 1];
-    b4 += pow((x * 0.78530), 2);
-  }
-
-  b1 *= 10;
-  float b23 = b2 * b3;
-  b4 *= 10;
-  float bp = pow(b2, 2);
-
-  float B = (b1 - b23) / (b4 - bp);
-  float A = (b3 - B * b2) / 10;
-
-  float angulo = (90 - (acos(B) * (180.0 / M_PI)));
-
-  float dist = A + (B * (10 * 0.78530));
-  float real_dist = cos(angulo / (180.0 / M_PI)) * dist;
-  float lateral_dist = 7.0 - fmod(real_dist, 30.0);
-  float h = sqrt(pow((10 * 0.78530), 2) - pow(lateral_dist, 2));
-  float t = sqrt(pow(30 - h, 2) + pow(lateral_dist, 2));
-  float angulo_trajetoria = asin(lateral_dist/t) * (180.0 / M_PI);
-
-  angulo *= -1;
-
-  float correcao = angulo + angulo_trajetoria;
-
-  Serial.print("angulo: ");
-  Serial.print(angulo);
-  Serial.print(" dist: ");
-  Serial.print(dist);
-  Serial.print(" dist real: ");
-  Serial.print(real_dist);
-  Serial.print(" dist quadrado: ");
-  Serial.print(lateral_dist);
-  Serial.print(" trajetoria: ");
-  Serial.print(t);
-  Serial.print(" angulo trajetoria: ");
-  Serial.println(angulo_trajetoria);
-
-
-
-
-  op.girar(300, correcao);
-  sensores.zerar_encoder();
-
-  while(sensores.passos_cm < t){
-    op.movimento(500);
-  }
-  motores.parar();
-
-  op.girar(300, -angulo_trajetoria);
-  
-
-
-
-
-  while (1)
-    ;
-}

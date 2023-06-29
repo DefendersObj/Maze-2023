@@ -17,6 +17,7 @@ Sensores sensores;
 #define CIRCUNFERENCIA_RODA 20
 #define COMPRIMENTO_ROBO 8.5
 #define NUM_PASSOS 10
+#define ENCODER_CONSTANT 0.78530
 
 
 /*! Constroi os PIDs*/
@@ -132,7 +133,7 @@ public:
     return cor;
   }
 
-  
+
   /******************** ANGULO **********************/
 
   int _andar = 0;
@@ -163,7 +164,7 @@ public:
       rampa = 0;
       _andar--;
       return _andar;
-    } else { //Mesmo andar
+    } else {  //Mesmo andar
       return _andar;
     }
   }
@@ -171,76 +172,8 @@ public:
 
   float correction_angle = 0.0;
   float trajetoria = 30.0;
-  float lateral_dist = 0.0;
-  float first_correction = 0.0;
   bool passagens[4];
 
-  /*! Estima o angulo atual com base em dois valores de distancia*/
-  void angulo() {
-
-    sensores.ler_dist();
-    float df = sensores.dist[1],
-          dt = sensores.dist[2],
-          et = sensores.dist[4],
-          ef = sensores.dist[5];
-    float angulo,
-      cat_op,
-      frente,
-      tras;
-
-    bool lado = false;
-
-    //Decidimos qual lado tem menores diferenças para medir o angulo
-    if (abs(ef - et) <= abs(df - dt)) {
-      frente = ef;
-      tras = et;
-      lado = true;
-      Serial.print("lado esquerdo escolhido: ");
-      Serial.print("frontal: ");
-      Serial.print(frente);
-      Serial.print(" traseiro: ");
-      Serial.println(tras);
-
-
-    } else {
-      frente = df;
-      tras = dt;
-      Serial.print("lado direito escolhido: ");
-      Serial.print("frontal: ");
-      Serial.print(frente);
-      Serial.print(" traseiro: ");
-      Serial.println(tras);
-    }
-
-
-    if (frente > tras) {
-      cat_op = frente - tras;
-    } else {
-      cat_op = tras - frente;
-    }
-
-    //Filtro
-    angulo = atan(cat_op / COMPRIMENTO_ROBO) * (180.0 / M_PI);
-    lateral_dist = cos(angulo / (180.0 / M_PI)) * ((frente + tras) / 2.0);
-    lateral_dist = 7.0 - fmod(lateral_dist, 30.0);
-    if (!lado) {
-      lateral_dist *= -1.0;
-    }
-
-    //Correcao dependendo da angulacao
-    if (frente > tras && lado == true) {
-      angulo = angulo * -1.0;
-    } else if (frente < tras && lado == false) {
-      angulo = angulo * -1.0;
-    }
-
-    first_correction = angulo;
-
-    Serial.print("Angulo correcao: ");
-    Serial.println(angulo);
-    Serial.print("lateral dist/teste: ");
-    Serial.println(lateral_dist);
-  }
 
 
   /********************************************************************* MOVIMENTACAO ********************************************************************/
@@ -294,7 +227,7 @@ public:
 
   /****************************************** TROCA DE QUADRADO *********************************************/
   /*! São definidos os parametros de distancia e do Encoder, para a troca*/
- 
+
   /*Um dos parametros da troca*/
   bool troca_encoder() {
 
@@ -312,21 +245,21 @@ public:
   /*Busca uma alteração brusca entre as medidas de distancia, fornecendo um parametro mais preciso para o Encoder*/
 
   //Direita frontal e Esquerda frontal
-  float last_dist[2] = { sensores.dist[1], sensores.dist[5] };
+  float last_dist[2] = { sensores.dist[2], sensores.dist[4] };
   bool limitador = false;  //Limita o numero de vezes em que zeramos o Encoder
 
   void trajetoria_por_parede() {
 
     //Sensores que devem ser atualizados
-    int aux[4] = { 1, 5 };
+    int aux[4] = { 2, 4 };
 
     sensores.ler_dist_rapido(aux);
 
 
     //Filtro lado direito
-    if (sensores.dist[1] <= 50.0 && last_dist[0] <= 50.0) {
-      if (abs(sensores.dist[1] - last_dist[0]) >= 20.0) {  //Procura diferença
-        trajetoria = 20.0;
+    if (sensores.dist[2] <= 30.0 && last_dist[0] <= 30.0) {
+      if (abs(sensores.dist[2] - last_dist[0]) >= 20.0) {  //Procura diferença
+        trajetoria = 7.0;
         if (limitador == false) {
           sensores.zerar_encoder();
           Serial.println("parede direita/encoder");
@@ -335,9 +268,9 @@ public:
       }
     }
     //Filtro lado Esquerdo
-    if (sensores.dist[5] <= 50.0 && last_dist[1] <= 50.0) {
-      if (abs(sensores.dist[5] - last_dist[1]) >= 20.0) {  //Procura diferença
-        trajetoria = 20.0;
+    if (sensores.dist[4] <= 30.0 && last_dist[1] <= 30.0) {
+      if (abs(sensores.dist[4] - last_dist[1]) >= 20.0) {  //Procura diferença
+        trajetoria = 7.0;
         if (limitador == false) {
           sensores.zerar_encoder();
           Serial.println("parede esquerda/encoder");
@@ -347,20 +280,20 @@ public:
     }
 
     //Salvamos para proximas iteracoes
-    last_dist[0] = sensores.dist[1];
-    last_dist[1] = sensores.dist[5];
+    last_dist[0] = sensores.dist[2];
+    last_dist[1] = sensores.dist[4];
   }
 
   /*Utilizada apos finalizar uma movimentacao, para previnir erros*/
   void zerar_trajetoria_por_parede() {
 
     //Sensores que devem ser atualizados
-    int aux[4] = { 1, 5 };
+    int aux[4] = { 2, 4 };
 
     sensores.ler_dist_rapido(aux);
 
-    last_dist[0] = sensores.dist[1];
-    last_dist[1] = sensores.dist[5];
+    last_dist[0] = sensores.dist[2];
+    last_dist[1] = sensores.dist[4];
     limitador = false;
   }
 
@@ -396,29 +329,94 @@ public:
   /************************************ CORREÇÃO ******************************************/
 
 
-  /*Tendo a distancia nescessaria para atingir o centro do proximo quadrado,
-   e o angulo que devemos manter para alcancala, esta funcao ajusta o robo no dado angulo, e atualiza a distancia
-   nescessaria para a troca pelo encoder*/
+
   void correcao_trajetoria() {
-    float correction = correction_angle + first_correction;
-    if (correction < -2.0 && correction > -30.0) girar(200, correction);
-    else if (correction > 2.0 && correction < 30.0) girar(200, correction);
+    int sen[] = { 2, 4 };
+    int controle = 0;
+    bool lado = false;
+    int sens[] = { 4 };
+    sensores.ler_dist_rapido(sen);
+    if (sensores.dist[2] <= sensores.dist[4] && sensores.dist[2] != 0.0) {
+      lado = true;
+      sens[0] = 2;
+    } else if (sensores.dist[4] == 0.0) return;
+
+    float leituras[10];
+    sensores.zerar_encoder();
+    unsigned int last_passo = sensores.passos;
+    while (sensores.passos < 10) {
+      movimento();
+      if (last_passo != sensores.passos) {
+        sensores.ler_dist_rapido(sens);
+        leituras[controle] = sensores.dist[sens[0]];
+        controle++;
+        last_passo = sensores.passos;
+      }
+    }
+    motores.parar();
+
+    for (int x = 0; x < 10; x++) {
+      Serial.println(leituras[x]);
+    }
+    float b1 = 0, b2 = 0, b3 = 0, b4 = 0;
+
+    for (float x = 1; x <= 10; x++) {
+      b1 += (x * ENCODER_CONSTANT) * leituras[(int)x - 1];
+      b2 += (x * ENCODER_CONSTANT);
+      b3 += leituras[(int)x - 1];
+      b4 += pow((x * ENCODER_CONSTANT), 2);
+    }
+
+    b1 *= 10;
+    float b23 = b2 * b3;
+    b4 *= 10;
+    float bp = pow(b2, 2);
+
+    float B = (b1 - b23) / (b4 - bp);
+    float A = (b3 - B * b2) / 10;
+
+    float angulo = (90 - (acos(B) * (180.0 / M_PI)));
+
+    float dist = A + (B * (10 * ENCODER_CONSTANT));
+    float real_dist = cos(angulo / (180.0 / M_PI)) * dist;
+    float lateral_dist = 7.0 - fmod(real_dist, 30.0);
+    float h = (10 * ENCODER_CONSTANT) * cos(angulo * (M_PI / 180.0));
+    float t = sqrt(pow(30 - h, 2) + pow(lateral_dist, 2));
+    float angulo_trajetoria = asin(lateral_dist / t) * (180.0 / M_PI);
+
+    angulo *= -1;
+
+    if (lado) {
+      angulo_trajetoria *= -1;
+      angulo *= -1;
+    }
+
+    float correcao = angulo + angulo_trajetoria;
+
+    trajetoria = t;
+    if(isnan(t)){
+      trajetoria = 22;
+    }
+
+    correction_angle = angulo_trajetoria;
+
+    Serial.print("angulo: ");
+    Serial.print(angulo);
+    Serial.print(" dist: ");
+    Serial.print(dist);
+    Serial.print(" dist real: ");
+    Serial.print(real_dist);
+    Serial.print(" dist quadrado: ");
+    Serial.print(lateral_dist);
+    Serial.print(" trajetoria: ");
+    Serial.print(t);
+    Serial.print(" angulo trajetoria: ");
+    Serial.println(angulo_trajetoria);
+
+    girar(300, correcao);
   }
 
-  /*Cálculo do comprimento da nova trajetória */
-  void calcular_trajetoria() {
-    trajetoria = 30.0;
 
-    //Nova distancia a ser percorrida (Deve ser passada para a troca)
-    trajetoria = sqrt(pow(lateral_dist, 2) + pow(30.0, 2));
-    correction_angle = atan(lateral_dist / 30.0) * (180.0 / M_PI);
-    Serial.print("desalinhamento lateral: ");
-    Serial.println(lateral_dist);
-    Serial.print("Trajetoria: ");
-    Serial.println(trajetoria);
-    Serial.print("Angulo trajetoria: ");
-    Serial.println(correction_angle);
-  }
   /**************************************************************** COMANDOS ******************************************************************************/
   /*! Realiza todas inicializações*/
   void iniciar() {
@@ -439,14 +437,13 @@ public:
   void frente() {
 
     sensores.zerar_encoder();
-    zerar_trajetoria_por_parede();
+    
     sensores.zerar_mpu();
 
     //Calcula e orienta uma nova trajetoria
-    angulo();
-    calcular_trajetoria();
     correcao_trajetoria();
     sensores.zerar_encoder();
+    zerar_trajetoria_por_parede();
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {

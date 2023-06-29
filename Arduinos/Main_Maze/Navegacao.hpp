@@ -153,12 +153,12 @@ public:
     //Procura por passagens nas quatros direções.
     //Caso o quadrado tenha mais de duas passagen salvamos suas coordenadas como nó
     //Norte
-    if (sensores.dist[0] > 20.0) {
+    if (sensores.dist[0] > 20.0 || sensores.dist[0] == 0.0) {
       passagens |= 0b00000001;
       no++;
     }
     //Leste
-    if (sensores.dist[1] > 20.0) {
+    if (sensores.dist[1] > 20.0 || sensores.dist[1] == 0.0) {
       passagens |= 0b00000010;
       no++;
     }
@@ -168,7 +168,7 @@ public:
       no++;
     }
     //Oeste
-    if (sensores.dist[5] > 20.0) {
+    if (sensores.dist[5] > 20.0 || sensores.dist[5] == 0.0) {
       passagens |= 0b00001000;
       no++;
     }
