@@ -15,7 +15,7 @@ class Navegacao {
 
 private:
 
-  /*A pilha contém 100 linhas e 2 colunas, armazenando cordenadas X,Y*/
+  /*A pilha armazena os nós e contém 100 linhas e 2 colunas, armazenando cordenadas X,Y*/
   uint8_t pilha[100][2];
   uint8_t _pilha_x, _pilha_y;
   unsigned int _pilha_control = 0;  //Controle de qual posição da pilha estamos
@@ -35,20 +35,23 @@ private:
     _pilha_y = pilha[_pilha_control][1];
   }
 
-
+  /*Pilha utilizada na DFS*/
   unsigned int _stack_control = 0;
   uint8_t _stack[100][2];
 
+  /*Adiciona cordenada na pilha DFS*/
   void set_stack(uint8_t i, uint8_t j) {
     _stack[_stack_control][0] = i;
     _stack[_stack_control][1] = j;
     _stack_control++;
   }
 
+  /*Volta uma cordenada*/
   void get_stack() {
     _stack_control--;
   }
 
+  /*Verifica se a cordenda analisada ja está presente na pilhas*/
   bool find_stack(uint8_t i, uint8_t j) {
 
     for (unsigned int passo; passo < _stack_control; passo++) {
@@ -64,6 +67,8 @@ public:
 
 
   char _commands[500];
+
+  /*Descompactaa a sêquencia de cordenadas para o nó em uma String de comandos*/
   void dump_stack() {
     uint16_t string_control = 0;
 
@@ -158,7 +163,8 @@ public:
       no++;
     }
     //Leste
-    if (sensores.dist[1] > 20.0 || sensores.dist[1] == 0.0) {
+    if (sensores.dist[2] > 20.0 || sensores.dist[2] == 0.0) {
+      
       passagens |= 0b00000010;
       no++;
     }
@@ -178,6 +184,7 @@ public:
     mapa.set_passages(X, Y, passagens, orientation);
   }
 
+  /************** Estágio 1 da Decisão ******************/
   /*Estágio 1 da Decisão, neste estagio fazemos uma busca apenas nos limites do quadrado atual.
   Priorizando a movimentação em direção ao Norte do mapa e sentido horário, até que nao existam quadrados não visitados nas redondezas
   imediatas do robô*/
@@ -284,7 +291,8 @@ public:
     return 'L';
   }
 
-  /*Estágio 2 da Navegação*/
+  /************* Estágio 2 da Navegação **************/
+
   void last_node() {
     while (1) {
       if (_pilha_control == 0) {
@@ -330,6 +338,7 @@ public:
         }
       }
     }
+
     put_node(_pilha_x, _pilha_y);
     _next_x = _pilha_x;
     _next_y = _pilha_y;
@@ -339,6 +348,7 @@ public:
     Serial.println(_next_y);
   }
 
+  /**************** Estágio 3 *****************/
   uint8_t calc_route(uint8_t x, uint8_t y) {
     Serial.println("----------------");
     Serial.print("x: ");
@@ -441,6 +451,7 @@ public:
 
     get_stack();
     return 1;
+    
   }
 };
 #endif

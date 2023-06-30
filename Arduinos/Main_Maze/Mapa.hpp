@@ -39,6 +39,9 @@ public:
       case 'p':
         color = 4;  //100
         break;
+      case 'r':
+        color = 5;  // 101
+        break;
     }
     mapa[x][y] &= ~(0b01110000);  //Bits utilizados para cor sao zerados
     mapa[x][y] |= (color << 4);   //Adicionamos os bits novos
@@ -78,7 +81,7 @@ public:
         break;
     }
 
-    //Verifica e atualiza cada uma das passagens 
+    //Verifica e atualiza cada uma das passagens
     //Norte
     if (info & 0b00000001) {
       Passages[0] = true;
@@ -111,7 +114,7 @@ public:
 
     for (int i = 0; i < SIZE; i++) {
       for (int j = 0; j < SIZE; j++) {
-        Serial.print(mapa[j][i], BIN); //Imprime em binario (Apenas os bits relevantes)
+        Serial.print(mapa[j][i], BIN);  //Imprime em binario (Apenas os bits relevantes)
         Serial.print(" ");
       }
       Serial.println();  //Quebra a linhha

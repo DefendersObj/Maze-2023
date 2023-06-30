@@ -11,23 +11,26 @@ private:
   const int greenPin = 27;      // Digital pin para o canal verde do RGB LED
   const int bluePin = 29;       // Digital pin para o canal azul do RGB LED
 
-  //Thresholds  das cores (CALIBRAR!!!!)
-  const int blueThreshold = 500;
-  const int whiteThreshold = 1000;
-  const int silverThreshold = 1500;
-  const int blackThreshold = 2000;
-
   /*Setup*/
-  void begin() {
-    pinMode(redPin, OUTPUT);
-    pinMode(greenPin, OUTPUT);
-    pinMode(bluePin, OUTPUT);
-  }
+
 
   /*Altera os valores RGB do LED*/
 
 
 public:
+  unsigned int _red;
+  unsigned int _green;
+  unsigned int _blue;
+
+
+  void begin() {
+    pinMode(redPin, OUTPUT);
+    pinMode(greenPin, OUTPUT);
+    pinMode(bluePin, OUTPUT);
+    digitalWrite(redPin, HIGH);
+    digitalWrite(bluePin, HIGH);
+    digitalWrite(greenPin, HIGH);
+  }
 
   /*Calibra os parametros de cor para a pista*/
   void calibrar_todos() {
@@ -47,49 +50,74 @@ public:
 
   /*Calibra uma cor individualmente*/
   void calibrar_cor() {
-    //Liga o LED
-    
+    while (!Serial.available())
+      ;
+    Serial.read();
 
-    int leitura;
+    float media_r = 0;
+    float media_g = 0;
+    float media_b = 0;
 
-    /*Integra o valor de 200 leituras*/
-    for (int i = 0; i < 200; i++) {
-      leitura += analogRead(photocellPin) / i;
+    for (float i = 1; i <= 100; i++) {
+      ler();
+      media_r += ((float)_red - media_r) / i;
+      media_g += ((float)_green - media_g) / i;
+      media_b += ((float)_blue - media_b) / i;
     }
 
-    //Resultados
-    Serial.print("Valor Estimado: ");
-    Serial.println(leitura);
-    delay(8000);
+    Serial.print(" vermelho: ");
+    Serial.print(media_r);
+    Serial.print(" green: ");
+    Serial.print(media_g);
+    Serial.print(" blue: ");
+    Serial.println(media_b);
   }
 
   /*Faz a leitura da cor atual*/
-  char ler() {
+  void ler() {
 
-    char cor;
-    unsigned int offset = analogRead(photocellPin);
+    _red = 0;
+    _blue = 0;
+    _green = 0;
+    unsigned int off = 0;
 
-    digitalWrite(redPin, HIGH);
-    delayMicroseconds(100);
-    unsigned int red = analogRead(photocellPin);
+    for (uint8_t i = 0; i < 100; i++) off += analogRead(photocellPin);
+
+    /*LOW = liga
+      HIGH = desliga */
+
     digitalWrite(redPin, LOW);
-    delayMicroseconds(100);
+    delay(10);
+    for (uint8_t i = 0; i < 100; i++) _red += analogRead(photocellPin);
+    digitalWrite(redPin, HIGH);
+    delay(10);
+    _red = off - _red;
 
-    digitalWrite(bluePin, HIGH);
-    delayMicroseconds(100);
-    unsigned int blue = analogRead(photocellPin);
+    off = 0;
+    for (uint8_t i = 0; i < 100; i++) off += analogRead(photocellPin);
+
     digitalWrite(bluePin, LOW);
-    delayMicroseconds(100);
+    delay(10);
+    for (uint8_t i = 0; i < 100; i++) _blue += analogRead(photocellPin);
+    digitalWrite(bluePin, HIGH);
+    delay(10);
+    _blue = off - _blue;
 
-    digitalWrite(greenPin, HIGH);
-    delayMicroseconds(100);
-    unsigned int green = analogRead(photocellPin);
+    off = 0;
+    for (uint8_t i = 0; i < 100; i++) off += analogRead(photocellPin);
+
     digitalWrite(greenPin, LOW);
-    delayMicroseconds(100);
+    delay(10);
+    for (uint8_t i = 0; i < 100; i++) _green += analogRead(photocellPin);
+    digitalWrite(greenPin, HIGH);
+    delay(10);
 
 
+    _green = off - _green;
 
-    return cor;
+    if(_green >= 1000000)_green = 0;
+    if(_red >= 1000000)_red = 0;
+    if(_blue >= 1000000)_blue = 0;
   }
 };
 

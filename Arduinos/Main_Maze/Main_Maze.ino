@@ -29,67 +29,71 @@ Cor color;
 //Sensores sensores;
 
 /*!<****** Declaração de todas variaveis ********/
-volatile bool reset = true;  //false; //Váriavel volatil para o estado do botão
+volatile bool reset = false;  //false; //Váriavel volatil para o estado do botão
+volatile bool flag_reset = true;
 
 /*!<******* Protótipo das Funções ********/
 char comando_manual();
 
 /*!< ************** Setup do Código *******************/
 void setup() {
-
+  
+  delay(1000);
   Serial.begin(250000);
   Serial2.begin(115200);
   Serial3.begin(115200);
-
-  Serial.println("Iniciei");
+  color.begin();
   /*!< Inicializacoes nescessarias >!*/
   op.iniciar();
   /*Encoder*/
   pinMode(5, INPUT);
   attachInterrupt(digitalPinToInterrupt(5), ler_encoder, CHANGE);
-  Serial.println("1");
   /*Botão*/
-  Serial.println("2");
-  //pinMode(12, INPUT);
+  pinMode(12, INPUT);
   attachInterrupt(digitalPinToInterrupt(12), resetar, FALLING);
+  reset = false;
   Serial.println("3");
 }
 
 /************ Inicio do Loop *************/
 void loop() {
 
-  Serial.println(".");
-
-  /*LEDs Ligados enquanto o robo espera ser iniciado pelo botão*/
+  /*LEDs Ligados enquanto espera ser iniciado pelo botão*/
   op.ligaLED_sinal();
   op.ligaLED_resgate();
 
   /*Só inicia caso o botão seja pressionado*/
   if (reset) {
+    if(flag_reset == true){
+      flag_reset = false;
+      delay(1000);
+    }
 
-    /*Desliga o LED de resgate para a rodada*/
+    //Desliga o LED de resgate para a rodada
     op.desligaLED_resgate();
-
-    //Teste
 
     /*Loop de execução do código*/
     while (reset == true) {  //Caso  botão de reset seja pressionado, sai do loop
-      Serial.println("1");
+
       //Atualiza o mapa
       mapa.get_info(navegacao.X, navegacao.Y);
       if (mapa.Color == 'u')
         navegacao.update_map();
-      Serial.println("2");
+      ;
       char com = 0;
 
       while (com != 'F' && com != 'L') {
-        Serial.println("3");
+
+        /*Estágio 1*/
         com = navegacao.decisao();
         ler_comando(com);
+        /*Estágio 2*/
         if (com == 'L') {
           navegacao.last_node();
+          /*Estágio 3*/
           navegacao.calc_route(navegacao.X, navegacao.Y);
-          navegacao.dump_stack();
+
+          navegacao.dump_stack(); //Traduz cordenadas para comandos
           uint16_t string_control = 0;
           while (navegacao._commands[string_control] != '\0') {
             ler_comando(navegacao._commands[string_control]);
@@ -98,11 +102,11 @@ void loop() {
         }
       }
     }
-    //Código de reset do mapa
   }
+  //Código de reset do mapa
 }
 
-/*!<******** Declaração das Funções *********/
+/*!<******** Declaração das Funções ********/
 
 /*! Recebe o comando e orientacao pela porta Serial*/
 char comando_manual() {
@@ -154,8 +158,10 @@ void ler_encoder() {
 
 /*!Verifica o botão atraves de interrupção*/
 void resetar() {
-  Serial.println("APERTOU");
   reset = !reset;
-  delay(1000);
+  flag_reset = true;
+  if(reset == false){
+    op.ligaLED_resgate();
+  }
+  else  op.desligaLED_resgate();
 }
-

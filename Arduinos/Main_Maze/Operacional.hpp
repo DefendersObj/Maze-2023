@@ -257,9 +257,9 @@ public:
 
 
     //Filtro lado direito
-    if (sensores.dist[2] <= 30.0 && last_dist[0] <= 30.0) {
+    if ((sensores.dist[2] <= 15.0 && last_dist[0] >= 20.0) || (sensores.dist[2] >= 20.0 && last_dist[0] <= 15.0)) {
       if (abs(sensores.dist[2] - last_dist[0]) >= 20.0) {  //Procura diferença
-        trajetoria = 7.0;
+        trajetoria = 12.0;
         if (limitador == false) {
           sensores.zerar_encoder();
           Serial.println("parede direita/encoder");
@@ -268,9 +268,9 @@ public:
       }
     }
     //Filtro lado Esquerdo
-    if (sensores.dist[4] <= 30.0 && last_dist[1] <= 30.0) {
+    if ((sensores.dist[4] <= 15.0 && last_dist[1] >= 20.0) || (sensores.dist[4] >= 20.0 && last_dist[1] <= 15.0)) {
       if (abs(sensores.dist[4] - last_dist[1]) >= 20.0) {  //Procura diferença
-        trajetoria = 7.0;
+        trajetoria = 12.0;
         if (limitador == false) {
           sensores.zerar_encoder();
           Serial.println("parede esquerda/encoder");
@@ -331,39 +331,68 @@ public:
 
 
   void correcao_trajetoria() {
+
     int sen[] = { 2, 4 };
     int controle = 0;
     bool lado = false;
-    int sens[] = { 4 };
     sensores.ler_dist_rapido(sen);
-    if (sensores.dist[2] <= sensores.dist[4] && sensores.dist[2] != 0.0) {
-      lado = true;
-      sens[0] = 2;
-    } else if (sensores.dist[4] == 0.0) return;
+    
 
-    float leituras[10];
+    float leituras[10][2];
     sensores.zerar_encoder();
     unsigned int last_passo = sensores.passos;
     while (sensores.passos < 10) {
       movimento();
       if (last_passo != sensores.passos) {
-        sensores.ler_dist_rapido(sens);
-        leituras[controle] = sensores.dist[sens[0]];
+        sensores.ler_dist_rapido(sen);
+        leituras[controle][0] = sensores.dist[4];
+        leituras[controle][1] = sensores.dist[2];
         controle++;
         last_passo = sensores.passos;
       }
     }
     motores.parar();
 
-    for (int x = 0; x < 10; x++) {
-      Serial.println(leituras[x]);
+    float derivada_esquerda = 0.0, derivada_direita = 0.0;
+
+    for(uint8_t i = 1 ; i < 10 ; i++){
+      derivada_esquerda += leituras[i][0] - leituras[i - 1][0];
+      derivada_direita += leituras[i][1] - leituras[i - 1][1];
     }
+    derivada_esquerda /= 10.0;
+    derivada_direita /= 10.0;
+
+    float desvio_esquerdo = 0.0;
+    float desvio_direito = 0.0;
+
+    for(uint8_t i = 1 ; i < 10 ; i++){
+      desvio_esquerdo += pow((leituras[i][0] - leituras[i - 1][0]) - derivada_esquerda, 2);
+      desvio_direito += pow((leituras[i][1] - leituras[i - 1][1]) - derivada_direita, 2);
+    }
+
+    desvio_esquerdo = sqrt(desvio_esquerdo / 9.0);
+    desvio_direito = sqrt(desvio_direito / 9.0);
+
+
+    Serial.print("desvio esquerdo: ");
+    Serial.print(desvio_esquerdo);
+    Serial.print(" desvio direito: ");
+    Serial.println(desvio_direito);
+
+    if(desvio_esquerdo > 0.5 && desvio_direito > 0.5){
+      trajetoria = 22;
+      return;
+    }
+
+
+    if(desvio_esquerdo >= desvio_direito)lado = 1;
+
     float b1 = 0, b2 = 0, b3 = 0, b4 = 0;
 
     for (float x = 1; x <= 10; x++) {
-      b1 += (x * ENCODER_CONSTANT) * leituras[(int)x - 1];
+      b1 += (x * ENCODER_CONSTANT) * leituras[(int)x - 1][lado];
       b2 += (x * ENCODER_CONSTANT);
-      b3 += leituras[(int)x - 1];
+      b3 += leituras[(int)x - 1][lado];
       b4 += pow((x * ENCODER_CONSTANT), 2);
     }
 
@@ -396,6 +425,7 @@ public:
     trajetoria = t;
     if(isnan(t)){
       trajetoria = 22;
+      correcao = 0;
     }
 
     correction_angle = angulo_trajetoria;

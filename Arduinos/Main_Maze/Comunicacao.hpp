@@ -47,7 +47,6 @@ public:
   /* Lê a serial e manda um echo para a camera */
   String recebe_menssagem() {
     String menssagem = Serial2.readStringUntil('\n');
-    Serial2.print(menssagem + "\n");//Echo
     return menssagem;
   }
 
@@ -82,8 +81,67 @@ public:
   /*Junção das duas funções acima, verifica quantos kits devem ser entregues
    e envia o echo do recebimento para acamera*/
   int kits() {
-    if(Serial2.available()){
+    if (Serial2.available()) {
       return process_menssagem(recebe_menssagem());
+    }
+  }
+
+  /*Protocolo que envia 1 lado e a OPenMV devolve se existem vitimas*/
+  int camera(char lado) {
+
+    String menssagem_cam;
+
+    while (Serial2.available()) Serial2.read();  //Limpa a Serial
+
+
+    /* lado = lado que a Camera está observano
+      \n = marcador de fim de pacote*/
+    char end_char = '\n';
+    char menssagem[] = { lado, end_char };
+    Serial2.print(menssagem);
+    //Serial.print(menssagem);
+    delay(500);
+
+    //Recebe a quantidade de kits via Serial2
+    while (1) {
+      if (Serial2.available()) {
+        menssagem_cam = Serial2.readStringUntil('\n');
+        break;
+      } else {
+        Serial2.print(menssagem);
+        Serial.println("Esperando Resposta");
+      }
+    }
+
+    Serial.print("Resposta: ");
+    Serial.println(menssagem_cam[0]);
+
+    switch (menssagem_cam[0]) {
+      case '0':  //Vítimas mas 0 kits
+        Serial.println('0');
+        delay(10000);
+        return 0;
+        break;
+      case '1':  //Vítima com 1 kits
+        Serial.println('1');
+        delay(10000);
+        return 1;
+        break;
+      case '2':  //Vítima com 2 kits
+        Serial.println('2');
+        delay(10000);
+        return 2;
+        break;
+      case '3':  //Vítima com 3 kits
+        Serial.println('3');
+        delay(10000);
+        return 3;
+        break;
+      default:  //Sem vítimas
+        Serial.println("No victim");
+        delay(500);
+        return 9;
+        break;
     }
   }
 
