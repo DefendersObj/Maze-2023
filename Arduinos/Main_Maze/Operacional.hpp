@@ -10,7 +10,9 @@ As funcoes dessa classe ainda nao sao as ideias para utilizicacao no codigo main
 #include "Motor.hpp"
 #include "Sensores_Novo.hpp"
 #include "PID.hpp"
+#include "Cor.hpp"
 
+Cor cores;
 Motor motores;
 Sensores sensores;
 
@@ -35,9 +37,11 @@ private:
   bool
     ultimo_passo,  //Encoder
     passo;
-
+    
 public:
 
+  bool _black_flag = false;
+  
   /********************** LEDS *********************/
   int led_resgate = 51;
   int led_sinal = 53;
@@ -329,14 +333,18 @@ public:
   /************************************ CORREÇÃO ******************************************/
 
 
-
+  /* Correcao de trajetoria dividida em 4 etapas
+    Etapa 1: Andamos 10 pulsos do encoder, simultaneamente fazemos a leitura de 2 sensoresde distancia (1 de cada lado)
+    Etapa 2: Escolhemos o lado com o menor desvio padrao  
+    Etapa 3: Calculamos o quao fora do quadrado + o angulo de erro
+    Etapa 4: Calculamos e atualizamos o a trajetoria restante + o angulo para correcao */
   void correcao_trajetoria() {
 
     int sen[] = { 2, 4 };
     int controle = 0;
     bool lado = false;
     sensores.ler_dist_rapido(sen);
-    
+
 
     float leituras[10][2];
     sensores.zerar_encoder();
@@ -355,7 +363,7 @@ public:
 
     float derivada_esquerda = 0.0, derivada_direita = 0.0;
 
-    for(uint8_t i = 1 ; i < 10 ; i++){
+    for (uint8_t i = 1; i < 10; i++) {
       derivada_esquerda += leituras[i][0] - leituras[i - 1][0];
       derivada_direita += leituras[i][1] - leituras[i - 1][1];
     }
@@ -365,7 +373,7 @@ public:
     float desvio_esquerdo = 0.0;
     float desvio_direito = 0.0;
 
-    for(uint8_t i = 1 ; i < 10 ; i++){
+    for (uint8_t i = 1; i < 10; i++) {
       desvio_esquerdo += pow((leituras[i][0] - leituras[i - 1][0]) - derivada_esquerda, 2);
       desvio_direito += pow((leituras[i][1] - leituras[i - 1][1]) - derivada_direita, 2);
     }
@@ -379,13 +387,13 @@ public:
     Serial.print(" desvio direito: ");
     Serial.println(desvio_direito);
 
-    if(desvio_esquerdo > 0.5 && desvio_direito > 0.5){
+    if (desvio_esquerdo > 0.5 && desvio_direito > 0.5) {
       trajetoria = 22;
       return;
     }
 
 
-    if(desvio_esquerdo >= desvio_direito)lado = 1;
+    if (desvio_esquerdo >= desvio_direito) lado = 1;
 
     float b1 = 0, b2 = 0, b3 = 0, b4 = 0;
 
@@ -423,7 +431,7 @@ public:
     float correcao = angulo + angulo_trajetoria;
 
     trajetoria = t;
-    if(isnan(t)){
+    if (isnan(t)) {
       trajetoria = 22;
       correcao = 0;
     }
@@ -467,18 +475,26 @@ public:
   void frente() {
 
     sensores.zerar_encoder();
-    
     sensores.zerar_mpu();
+    zerar_trajetoria_por_parede();
 
     //Calcula e orienta uma nova trajetoria
     correcao_trajetoria();
     sensores.zerar_encoder();
-    zerar_trajetoria_por_parede();
+    
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
-      //Busca mudancas nas paredes laterais para uma troca mais precisa
-      trajetoria_por_parede();
+      
+      //Saida do preto
+      if (cores.buscar() == 'b'){
+        trajetoria = 10.0;
+        _black_flag = true;
+        while(troca_quadrado() == false ) movimento(-500);
+        return;
+      }
+
+      trajetoria_por_parede();  //Busca mudancas nas paredes laterais
       movimento(500);
       //Serial.println(sensores.passos_cm);
     }
@@ -487,14 +503,7 @@ public:
 
     //Desvira
     if (correction_angle <= 30.0 && correction_angle >= -30.0) {
-      girar(200, -correction_angle);
-    }
-
-    //Caso tenhamos encontrado uma vítima realizamos seu resgate
-    if (_kits != 9) {  // 9 = nenhuma vitima
-      ligaLED_resgate();
-      resgate(_kits, _lado);
-      desligaLED_resgate();
+      girar(300, -correction_angle);
     }
   }
 

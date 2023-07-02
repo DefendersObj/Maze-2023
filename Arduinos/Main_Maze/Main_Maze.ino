@@ -37,7 +37,7 @@ char comando_manual();
 
 /*!< ************** Setup do Código *******************/
 void setup() {
-  
+
   delay(1000);
   Serial.begin(250000);
   Serial2.begin(115200);
@@ -58,13 +58,13 @@ void setup() {
 /************ Inicio do Loop *************/
 void loop() {
 
-  /*LEDs Ligados enquanto espera ser iniciado pelo botão*/
+  /*LEDs Ligados enquanto espera o botão*/
   op.ligaLED_sinal();
   op.ligaLED_resgate();
 
-  /*Só inicia caso o botão seja pressionado*/
+  /*Inicia se o botão for pressionado*/
   if (reset) {
-    if(flag_reset == true){
+    if (flag_reset == true) {
       flag_reset = false;
       delay(1000);
     }
@@ -75,11 +75,12 @@ void loop() {
     /*Loop de execução do código*/
     while (reset == true) {  //Caso  botão de reset seja pressionado, sai do loop
 
-      //Atualiza o mapa
+      //Atualiza o mapa caso o quadrado nao tenha sido visitado
       mapa.get_info(navegacao.X, navegacao.Y);
       if (mapa.Color == 'u')
         navegacao.update_map();
       ;
+
       char com = 0;
 
       while (com != 'F' && com != 'L') {
@@ -87,13 +88,15 @@ void loop() {
         /*Estágio 1*/
         com = navegacao.decisao();
         ler_comando(com);
-        /*Estágio 2*/
-        if (com == 'L') {
-          navegacao.last_node();
-          /*Estágio 3*/
-          navegacao.calc_route(navegacao.X, navegacao.Y);
 
-          navegacao.dump_stack(); //Traduz cordenadas para comandos
+        //So entra se nao houver mais caminhos novos
+        if (com == 'L') {
+          /*Estágio 2: Busca pelo ultimo no valido*/
+          navegacao.last_node();
+
+          /*Estágio 3: Calcula rota para ultimo no*/
+          navegacao.calc_route(navegacao.X, navegacao.Y);
+          navegacao.dump_stack();  //Traduz cordenadas para comandos
           uint16_t string_control = 0;
           while (navegacao._commands[string_control] != '\0') {
             ler_comando(navegacao._commands[string_control]);
@@ -160,8 +163,7 @@ void ler_encoder() {
 void resetar() {
   reset = !reset;
   flag_reset = true;
-  if(reset == false){
+  if (reset == false) {
     op.ligaLED_resgate();
-  }
-  else  op.desligaLED_resgate();
+  } else op.desligaLED_resgate();
 }

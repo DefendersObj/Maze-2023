@@ -11,6 +11,7 @@ private:
 
 public:
 
+  /***************** ARDUINO MEGA ******************/
   /*!Envia as potencias para os motores*/
   void envio_motores(int pot_int[4]) {
     while (Serial3.available()) Serial3.read();  //Limpa a Serial
@@ -35,56 +36,6 @@ public:
   }
 
   /********************* OpenMV H7 *************************/
-
-  /*Envia o lado que a camera está olhando*/
-  void envia_lado(char lado) {
-    char starter_char = '#',
-         end_char = '\n';
-    char menssagem[] = { starter_char, lado, end_char };
-    Serial2.print(menssagem);
-  }
-
-  /* Lê a serial e manda um echo para a camera */
-  String recebe_menssagem() {
-    String menssagem = Serial2.readStringUntil('\n');
-    return menssagem;
-  }
-
-  /* Retorna o numero de kits necessarios para as vitimas e caso não ache vitimas manda 9 */
-  int process_menssagem(String menssagem) {
-    if (menssagem[0] == '#') {
-      switch (menssagem[1]) {
-        case '0':
-          Serial.println('0');
-          return 0;
-          break;
-        case '1':
-          Serial.println('1');
-          return 1;
-          break;
-        case '2':
-          Serial.println('2');
-          return 2;
-          break;
-        case '3':
-          Serial.println('3');
-          return 3;
-          break;
-        default:
-          Serial.println("No victim");
-          return 9;
-          break;
-      }
-    }
-  }
-
-  /*Junção das duas funções acima, verifica quantos kits devem ser entregues
-   e envia o echo do recebimento para acamera*/
-  int kits() {
-    if (Serial2.available()) {
-      return process_menssagem(recebe_menssagem());
-    }
-  }
 
   /*Protocolo que envia 1 lado e a OPenMV devolve se existem vitimas*/
   int camera(char lado) {
@@ -144,18 +95,5 @@ public:
         break;
     }
   }
-
-  /* void loop() {
-
-    // APENAS PARA TESTES RECEBE MENSAGEM VIA SERIAL0
-    if (Serial.available()) {
-      char lado = Serial.read();
-      send_lado(lado);
-    }
-    // LÊ A SERIAL DA CAMERA
-    if (Serial2.available()) {
-      process_menssagem(receive_message());
-    }
-  } */
 };
 #endif

@@ -143,17 +143,29 @@ public:
 
   /*Cordenadas e orientação inicial*/
   uint8_t X = START_POINT_X, Y = START_POINT_Y, orientation = 0;
+  uint8_t _last_X = X, _last_Y = Y;
 
   /*Atualiza o mapa*/
   void update_map() {
+
     sensores.ler_dist();
     byte no = 0;
-
-    //ler cor
-    //Atualiza a cor
-    mapa.set_color(X, Y, 'w');
-
     uint8_t passagens = 0;
+
+    //Caso o quadrado seja preto
+    if (op._black_flag == true) {
+      mapa.set_color(X, Y, 'b');
+      mapa.set_passages(X, Y, passagens, orientation);
+      X = _last_X;
+      Y = _last_Y;
+      op._black_flag = false;
+      return;
+    } 
+
+    //Caso normal
+    else mapa.set_color(X, Y, 'w');
+
+    
 
     //Procura por passagens nas quatros direções.
     //Caso o quadrado tenha mais de duas passagen salvamos suas coordenadas como nó
@@ -164,7 +176,7 @@ public:
     }
     //Leste
     if (sensores.dist[2] > 20.0 || sensores.dist[2] == 0.0) {
-      
+
       passagens |= 0b00000010;
       no++;
     }
@@ -189,6 +201,11 @@ public:
   Priorizando a movimentação em direção ao Norte do mapa e sentido horário, até que nao existam quadrados não visitados nas redondezas
   imediatas do robô*/
   char decisao() {
+
+    //Armazenamos para um eventual encontro com Preto
+    _last_X = X;
+    _last_Y = Y;
+
     //Puxamos as informações do quadrado atual
     mapa.get_info(X, Y);
 
@@ -451,7 +468,6 @@ public:
 
     get_stack();
     return 1;
-    
   }
 };
 #endif

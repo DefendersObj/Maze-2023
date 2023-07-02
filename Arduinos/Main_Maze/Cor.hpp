@@ -115,9 +115,20 @@ public:
 
     _green = off - _green;
 
-    if(_green >= 1000000)_green = 0;
-    if(_red >= 1000000)_red = 0;
-    if(_blue >= 1000000)_blue = 0;
+    if (_green >= 1000000) _green = 0;
+    if (_red >= 1000000) _red = 0;
+    if (_blue >= 1000000) _blue = 0;
+  }
+
+  /*Verifica a cor atual*/
+  char
+  buscar() {
+    ler();
+    if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'b';
+    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'p';
+    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 's';
+    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'w';
+    else return 'w';
   }
 };
 
