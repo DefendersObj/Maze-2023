@@ -65,10 +65,19 @@ private:
 
 public:
 
+  /*Em caso de falha de Progresso:
+  Atualiza as cordenadas para o último checkpoint
+  Orientação do robô volta para zero
+  Apaga partes do mapa que não são confirmados (Último bit como )*/
+  void falha_de_progresso() {
+    X = _checkpoint_X;
+    Y = _checkpoint_Y;
+    mapa.reset();
+  }
 
   char _commands[500];
 
-  /*Descompactaa a sêquencia de cordenadas para o nó em uma String de comandos*/
+  /*Descompacta a sêquencia de cordenadas para o nó em uma String de comandos*/
   void dump_stack() {
     uint16_t string_control = 0;
 
@@ -144,6 +153,8 @@ public:
   /*Cordenadas e orientação inicial*/
   uint8_t X = START_POINT_X, Y = START_POINT_Y, orientation = 0;
   uint8_t _last_X = X, _last_Y = Y;
+  /*Cordenadas do ultimo checkpoint*/
+  uint8_t _checkpoint_X = START_POINT_X, _checkpoint_Y = START_POINT_Y;
 
   /*Atualiza o mapa*/
   void update_map() {
@@ -160,12 +171,23 @@ public:
       Y = _last_Y;
       op._black_flag = false;
       return;
-    } 
+    }
+
+    //Quando encontrar um Checkpoint
+    else if (cores.buscar() == 's') {
+
+      //Atualiza as cordenados do último checkpoint para as atuais
+      _checkpoint_X = X;
+      _checkpoint_Y = Y;
+      //Varre o mapa e confirma os caminhos anteriores como válidos (Último bit vira 1)*/
+      mapa.consolidacao();
+    }
 
     //Caso normal
-    else mapa.set_color(X, Y, 'w');
+    else
+      mapa.set_color(X, Y, 'w');
 
-    
+
 
     //Procura por passagens nas quatros direções.
     //Caso o quadrado tenha mais de duas passagen salvamos suas coordenadas como nó

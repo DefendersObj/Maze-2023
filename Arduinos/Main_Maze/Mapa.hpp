@@ -109,6 +109,35 @@ public:
   }
 
 
+  /*! Reset do mapa, todo quadrado que não tiver o bit
+  de consolidação é zerado*/
+  void reset() {
+    //Verifica todas cordenadas
+    for (int y = 0; y < SIZE; y++) {
+      for (int x = 0; x < SIZE; x++) {
+
+        uint8_t info = mapa[x][y];
+        if (info & 0b10000000) {  //Verifica bit de consolidação
+          mapa[x][y] = 0;         //Todos bits são zerados
+        }
+      }
+    }
+  }
+
+  /*! Consolidacao do mapa, todo quadrado que ja foi visitado recebe o bit de consolidação*/
+  void consolidacao() {
+    //Verifica todas cordenadas
+    for (int y = 0; y < SIZE; y++) {
+      for (int x = 0; x < SIZE; x++) {
+
+        get_info(x, y);
+        if (Color != 'u') { //Se o quadrado já foi visitado consolidamos ele 
+          mapa[x][y] |= 0b10000000;  
+        }
+      }
+    }
+  }
+
   /*! Impressão completa do mapa atual*/
   void imprimir() {
 

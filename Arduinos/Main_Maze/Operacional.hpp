@@ -37,11 +37,11 @@ private:
   bool
     ultimo_passo,  //Encoder
     passo;
-    
+
 public:
 
   bool _black_flag = false;
-  
+
   /********************** LEDS *********************/
   int led_resgate = 51;
   int led_sinal = 53;
@@ -90,53 +90,6 @@ public:
     else if (com == 'F') servo_camera.write(60);  //Ajustar
     else if (com == 'D') servo_camera.write(30);  //Ajustar
   }
-
-  /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
-  void resgate(int kits, char lado) {
-    int aux = 0;
-    servo_camera.write(36);  //Posicao de repouso
-
-    //Resgate do lado Esquerdo
-    if (lado == 'E')
-      while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado direito
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
-        aux++;
-      }
-
-    //Resgate do lado Direito
-    else if (lado == 'E')
-      while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado esquerdo
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
-        aux++;
-      }
-
-    //Resgate na Frente
-    else if (lado == 'F') {
-      //Gira o robo para realizar o resgate
-      girar(500, 90.0);
-
-      while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado direito
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
-        aux++;
-      }
-
-      //Gira para a posicao inicial
-      girar(500, -90.0);
-    }
-  }
-  /**************** CORES *****************/
-  char cor() {
-    //Le o sensor
-    char cor = 'w';
-    return cor;
-  }
-
 
   /******************** ANGULO **********************/
 
@@ -474,6 +427,9 @@ public:
   /*! Movimentamos 1 quadrado para Frente e buscamos por vitimas */
   void frente() {
 
+    //Checa se estámos em quadrado azul antes de sair
+    if (cores.buscar() == 'p') delay(5000);
+
     sensores.zerar_encoder();
     sensores.zerar_mpu();
     zerar_trajetoria_por_parede();
@@ -481,16 +437,16 @@ public:
     //Calcula e orienta uma nova trajetoria
     correcao_trajetoria();
     sensores.zerar_encoder();
-    
+
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
-      
+
       //Saida do preto
-      if (cores.buscar() == 'b'){
+      if (cores.buscar() == 'b') {
         trajetoria = 10.0;
         _black_flag = true;
-        while(troca_quadrado() == false ) movimento(-500);
+        while (troca_quadrado() == false) movimento(-500);
         return;
       }
 
@@ -511,32 +467,69 @@ public:
   /*! Busca vitimas com a camera*/
   void buscar_vit() {
 
+    //Lado Esquerdo
     move_camera('E');
-    //com.envia_lado('L');  //Envia lado obeservado para OpenMV / Left
-    //_kits = com.kits();
+    _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'E';
       return;
     }
-    delay(2000);
 
-    move_camera('F');
-    //com.envia_lado('F');  //Front
-    //_kits = com.kits();
+    //Frente
+    move_camera('E');
+    _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'F';
       return;
     }
-    delay(2000);
 
-    move_camera('D');
-    //com.envia_lado('R');  //Right
-    //_kits = com.kits();
+    //Lado Direito
+    move_camera('E');
+    _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'D';
       return;
     }
-    delay(2000);
+  }
+
+  /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
+  void resgate(int kits, char lado) {
+    int aux = 0;
+    servo_camera.write(36);  //Posicao de repouso
+
+    //Resgate do lado Esquerdo
+    if (lado == 'E')
+      while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado direito
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+    //Resgate do lado Direito
+    else if (lado == 'E')
+      while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado esquerdo
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+    //Resgate na Frente
+    else if (lado == 'F') {
+      //Gira o robo para realizar o resgate
+      girar(500, 90.0);
+
+      while (aux < kits) {
+        servo_resgate.write(36);  //Abre para o lado direito
+        delay(100);
+        servo_resgate.write(36);  //Posicao de repouso
+        aux++;
+      }
+
+      //Gira para a posicao inicial
+      girar(500, -90.0);
+    }
   }
 };
 #endif

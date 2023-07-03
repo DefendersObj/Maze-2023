@@ -87,10 +87,12 @@ void loop() {
 
         /*Estágio 1*/
         com = navegacao.decisao();
-        ler_comando(com);
+        /*Todo avanço de quadrado dentro do estagio 1 deve ter busca por vítimas*/
+        ler_comando(com, true);
 
-        //So entra se nao houver mais caminhos novos
+        //So entra se nao houverem caminhos novos
         if (com == 'L') {
+
           /*Estágio 2: Busca pelo ultimo no valido*/
           navegacao.last_node();
 
@@ -99,14 +101,15 @@ void loop() {
           navegacao.dump_stack();  //Traduz cordenadas para comandos
           uint16_t string_control = 0;
           while (navegacao._commands[string_control] != '\0') {
-            ler_comando(navegacao._commands[string_control]);
+            ler_comando(navegacao._commands[string_control], false);
             string_control++;
           }
         }
       }
     }
   }
-  //Código de reset do mapa
+  /*Limpa o mapa não consolidado e atualiza as cordenadas, ORIENTAÇÃO VOLTA PARA ZERO!!!*/
+  navegacao.falha_de_progresso();
 }
 
 /*!<******** Declaração das Funções ********/
@@ -125,15 +128,15 @@ char comando_manual() {
 }
 
 /*Lê o comando recebido pela decisão*/
-void ler_comando(char com) {
+void ler_comando(char com, bool busca) {
+  
+  //Movimento de 1 quadrado para frente
   if (com == 'F') {
     delay(300);
+    if (busca == true) op.buscar_vit();
     op.frente();
+    op.resgate(op._kits, op._lado);
     Serial.println("Frente!!");
-  }
-  //Start
-  else if (com == 'S') {
-    op.iniciar();
   }
 
   //Giro para Esquerda
