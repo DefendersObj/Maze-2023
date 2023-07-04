@@ -117,8 +117,8 @@ public:
       for (int x = 0; x < SIZE; x++) {
 
         uint8_t info = mapa[x][y];
-        if (info & 0b10000000) {  //Verifica bit de consolidação
-          mapa[x][y] = 0;         //Todos bits são zerados
+        if (!(info & 0b10000000)) {  //Verifica bit de consolidação
+          mapa[x][y] = 0;            //Todos bits são zerados
         }
       }
     }
@@ -130,9 +130,10 @@ public:
     for (int y = 0; y < SIZE; y++) {
       for (int x = 0; x < SIZE; x++) {
 
+        //Puxa informações
         get_info(x, y);
-        if (Color != 'u') { //Se o quadrado já foi visitado consolidamos ele 
-          mapa[x][y] |= 0b10000000;  
+        if (Color != 'u') {  //Se o quadrado já foi visitado consolidamos ele
+          mapa[x][y] |= 0b10000000;
         }
       }
     }

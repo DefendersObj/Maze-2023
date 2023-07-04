@@ -16,11 +16,8 @@
 #include "Comunicacao.hpp"
 #include "Sensores_Novo.hpp"
 #include <Servo.h>
-#include "Cor.hpp"
 
 #define ENCODER_CONSTANT 0.78530
-
-
 
 //Comunicacao com_;
 Mapa mapa_;
@@ -57,7 +54,7 @@ void setup() {
 
 /************ Inicio do Loop *************/
 void loop() {
-
+   while(1)ler_comando(comando_manual(), true);
   /*LEDs Ligados enquanto espera o botão*/
   op.ligaLED_sinal();
   op.ligaLED_resgate();
@@ -129,7 +126,7 @@ char comando_manual() {
 
 /*Lê o comando recebido pela decisão*/
 void ler_comando(char com, bool busca) {
-  
+
   //Movimento de 1 quadrado para frente
   if (com == 'F') {
     delay(300);

@@ -72,6 +72,7 @@ public:
   void falha_de_progresso() {
     X = _checkpoint_X;
     Y = _checkpoint_Y;
+    orientation = 0;
     mapa.reset();
   }
 
