@@ -98,7 +98,6 @@ def detection_letter(img, side) -> str:
             print("Detectei nada") # Para debug
             return '9'
 
-
     elif side == 'R':
         if img.find_template(HR, 0.7, search = image.SEARCH_DS):
             print("[H]") # Para debug
@@ -112,46 +111,44 @@ def detection_letter(img, side) -> str:
         else:
             print("Detectei nada")
             return '9'
-    else:
-        return '9'
+        
+def max_key(initial_key, victim_counter) -> str:
+    max_key = initial_key
+    for key in list(victim_counter.keys()):
+        if victim_counter[key] > victim_counter[max_key]:
+            max_key = key
+    return str(max_key)
 while(True):
-    victim_counter = {'0': 0, '1': 0, '2': 0, '3': 0}
-    victim = False
+    victim_counter = {'0': 0, '1': 0, '2': 0, '3': 0, '9': 0}
     i = 0
     img = sensor.snapshot()
     if uart.any():
         side = receive_side(uart)
-        print(f"[DO ARDUINO] Lado: {side}")
-        while i < 50 and not victim:
-            for detection in img.find_blobs(threshold_list, area_threshold = 2000, merge = True):
+        print("[DO ARDUINO] Lado: " + side)
+        while i < 50:
+            for detection in img.find_blobs(threshold_list, merge = True):
+                
+                if detection.area() > 2000 and detection.code() == 1:
+                    print("BURACO") #Discutir com Gabriel
+
                 if detection.code() == 2:
-                    uart.write('0\n')
-                    victim = True
+                    victim_counter['0'] = victim_counter['0'] + 1
                     print('[DA OPENMV] Verde')
-                    break
 
                 elif detection.code() == 4:
-                    victim = True
-                    uart.write('1\n')
+                    victim_counter['1'] = victim_counter['1'] + 1
                     print("[DA OPENMV] Amarelo")
-                    break
+
                 elif detection.code() == 8:
-                    victim = True
-                    uart.write('1\n')
+                    victim_counter['1'] = victim_counter['1'] + 1
                     print("[DA OPENMV] Vermelho")
-                    break
 
                 elif detection.code() == 1:
                     nKits = detection_letter(img, side)
-                    if nKits != '9':
-                        victim = True
-                        print("[DA OPENMV]: numero de kits " + nKits)
-                        uart.write(nKits + '\n')
-                        break
-                    else:
-                        victim = True
-                        print("[DA OPENMV]: numero de kits " + nKits)
-                        uart.write('9\n')
-                        break
+                    victim_counter[nKits] = victim_counter[nKits] + 1
                 img.draw_rectangle(detection.rect())
             i = i + 1
+            if i == 50:
+                max_detections = max_key('0', victim_counter)
+                print(max_detections, victim_counter[max_detections])
+                uart.write(max_detections)
