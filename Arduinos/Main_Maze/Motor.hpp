@@ -15,8 +15,16 @@ public:
   /*! Funcao que coloca todos motores na mesma velocidade, e realiza seus espelhamentos*/
   void mesma_potencia(int vel, int dif_lado = 0) {
     //Caso normal da movimentacao
-    int aux[4] = { (vel + dif_lado), -(vel - dif_lado), (vel + dif_lado) , -(vel - dif_lado)};
+    int aux[4] = { (vel + dif_lado), -(vel - dif_lado), (vel + dif_lado), -(vel - dif_lado) };
     potencia(aux);  //E enviado para os motores os valores de correcao
+  }
+
+  /*Sai de ré do preto*/
+  void sair_preto(int vel = -500) {
+    //Caso normal da movimentacao
+    int aux[4] = { (vel ), -(vel), (vel), -(vel) };
+    potencia(aux);  //E enviado para os motores os valores de correcao
+    
   }
 
   /*! Funcao que faz o envio das velocidade individualmente para cada motor*/
@@ -33,7 +41,7 @@ public:
     com.envio_motores(vel);
   }
 
-  void parar(){
+  void parar() {
     mesma_potencia(0);
   }
 };

@@ -22,7 +22,6 @@
 //Comunicacao com_;
 Mapa mapa_;
 Navegacao navegacao;
-Cor color;
 //Sensores sensores;
 
 /*!<****** Declaração de todas variaveis ********/
@@ -39,7 +38,7 @@ void setup() {
   Serial.begin(250000);
   Serial2.begin(115200);
   Serial3.begin(115200);
-  color.begin();
+  cores.begin();
   /*!< Inicializacoes nescessarias >!*/
   op.iniciar();
   /*Encoder*/
@@ -54,7 +53,16 @@ void setup() {
 
 /************ Inicio do Loop *************/
 void loop() {
-   while(1)ler_comando(comando_manual(), true);
+  //while (1) {
+  //com.camera('M');
+  // delay(2000);
+  //}
+  //while(1)cores.calibrar_todos();
+  //while (1) {
+  // Serial.println(cores.buscar());
+  // Serial.println("------------------");
+  //}
+
   /*LEDs Ligados enquanto espera o botão*/
   op.ligaLED_sinal();
   op.ligaLED_resgate();
@@ -106,6 +114,7 @@ void loop() {
     }
   }
   /*Limpa o mapa não consolidado e atualiza as cordenadas, ORIENTAÇÃO VOLTA PARA ZERO!!!*/
+  motores.parar();
   navegacao.falha_de_progresso();
 }
 
@@ -132,7 +141,7 @@ void ler_comando(char com, bool busca) {
     delay(300);
     if (busca == true) op.buscar_vit();
     op.frente();
-    op.resgate(op._kits, op._lado);
+    if (op._kits != 9) op.resgate(op._kits, op._lado);  //Se houver vítimas resgata
     Serial.println("Frente!!");
   }
 

@@ -51,7 +51,7 @@ public:
     char menssagem[] = { lado, end_char };
     Serial2.print(menssagem);
     //Serial.print(menssagem);
-    delay(500);
+    
 
     //Recebe a quantidade de kits via Serial2
     while (1) {
@@ -59,6 +59,7 @@ public:
         menssagem_cam = Serial2.readStringUntil('\n');
         break;
       } else {
+        delay(100);
         Serial2.print(menssagem);
         Serial.println("Esperando Resposta");
       }

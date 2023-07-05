@@ -444,9 +444,10 @@ public:
 
       //Saida do preto
       if (cores.buscar() == 'b') {
+        sensores.zerar_encoder();
         trajetoria = 10.0;
         _black_flag = true;
-        while (troca_quadrado() == false) movimento(-500);  //Ré
+        while (troca_quadrado() == false) sair_preto();  //Ré
         return;
       }
 
@@ -469,25 +470,28 @@ public:
 
     //Lado Esquerdo
     move_camera('E');
-    //_kits = com.camera('L');
+    _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'E';
+      Serial.println("Achei esquerdo");
       return;
     }
 
     //Frente
     move_camera('F');
-    //_kits = com.camera('M');
+    _kits = com.camera('M');
     if (_kits != 9) {
       _lado = 'F';
+       Serial.println("Achei Frente");
       return;
     }
 
     //Lado Direito
     move_camera('D');
-    //_kits = com.camera('R');
+    _kits = com.camera('R');
     if (_kits != 9) {
       _lado = 'D';
+       Serial.println("Achei Direita");
       return;
     } else return;
   }
@@ -498,11 +502,11 @@ public:
     int vel = 75;
     servo_resgate.write(75);  //Posicao de repouso
     ligaLED_resgate();
+    delay(3000);
 
     //Resgate do lado Esquerdo
     if (lado == 'E')
       while (aux < kits) {
-
         //Abre para o lado direito
         while (vel < 120) {
           servo_resgate.write(vel);
@@ -547,7 +551,6 @@ public:
     else if (lado == 'F') {
       //Gira o robo para realizar o resgate
       girar(500, 90.0);
-
 
       while (aux < kits) {
         while (vel > 30) {

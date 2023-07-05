@@ -124,11 +124,18 @@ public:
   char
   buscar() {
     ler();
-    if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'b';
-    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'p';
-    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 's';
-    else if (_red >= 100 && _red <= 100 && _green >= 100 && _green <= 100 && _blue >= 100 && _blue <= 100) return 'w';
-    else return 'w';
+    /*Serial.print("Vermelho: ");
+    Serial.println(_red);
+    Serial.print("Verde: ");
+    Serial.println(_green);
+    Serial.print("Azul: ");
+    Serial.println(_blue);*/
+
+    if (_red >= 0.0 && _red <= 110.0 && _green >= 0.0 && _green <= 105.0 && _blue >= 0.0 && _blue <= 110.0) return 'b';
+    else if (_red >= 111.0 && _red <= 350.0 && _green >= 105.0 && _green <= 200.0 && _blue >= 111.0 && _blue <= 220.0) return 'p';
+    else if (_red >= 1000.0 && _red <= 2500.0 && _green >= 1000.0 && _green <= 2500.0 && _blue >= 1000.0 && _blue <= 2500.0) return 's';
+    else if (_red >= 350 && _red <= 1000.0 && _green >= 200.0 && _green <= 1000.0 && _blue >= 220.0 && _blue <= 1000.0) return 'w';
+    else buscar();
   }
 };
 
