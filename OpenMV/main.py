@@ -128,8 +128,8 @@ while(True):
         while i < 50:
             for detection in img.find_blobs(threshold_list, merge = True):
 
-                if detection.area() > 2000 and detection.code() == 1:
-                    print("BURACO") #Discutir com Gabriel
+                #if detection.area() > 2000 and detection.code() == 1:
+                #    print("BURACO") #Discutir com Gabriel
 
                 if detection.code() == 2:
                     victim_counter['0'] = victim_counter['0'] + 1
