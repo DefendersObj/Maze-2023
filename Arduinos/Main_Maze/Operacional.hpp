@@ -80,15 +80,15 @@ public:
     servo_frontal.attach(41);
     //Posicoes iniciais
     servo_frontal.write(36);
-    servo_resgate.write(36);
+    servo_resgate.write(75);
     servo_camera.write(100);
   }
 
   /*Realiza as movimentacoes da camera*/
   void move_camera(char com) {
-    if (com == 'E') servo_camera.write(100);      //Ajustar
-    else if (com == 'F') servo_camera.write(60);  //Ajustar
-    else if (com == 'D') servo_camera.write(30);  //Ajustar
+    if (com == 'E') servo_camera.write(140);       //Ajustar
+    else if (com == 'F') servo_camera.write(112);  //Ajustar
+    else if (com == 'D') servo_camera.write(84);   //Ajustar
   }
 
   /******************** ANGULO **********************/
@@ -161,8 +161,6 @@ public:
     motores.parar();
     sensores.zerar_mpu();
   }
-
-  /*! Para todos motores*/
 
   /*! Volta de re quando entramos em um quadrado preto*/
   void sair_preto() {
@@ -434,6 +432,8 @@ public:
     sensores.zerar_mpu();
     zerar_trajetoria_por_parede();
 
+
+
     //Calcula e orienta uma nova trajetoria
     correcao_trajetoria();
     sensores.zerar_encoder();
@@ -446,7 +446,7 @@ public:
       if (cores.buscar() == 'b') {
         trajetoria = 10.0;
         _black_flag = true;
-        while (troca_quadrado() == false) movimento(-500);
+        while (troca_quadrado() == false) movimento(-500);  //Ré
         return;
       }
 
@@ -469,50 +469,78 @@ public:
 
     //Lado Esquerdo
     move_camera('E');
-    _kits = com.camera('L');
+    //_kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'E';
       return;
     }
 
     //Frente
-    move_camera('E');
-    _kits = com.camera('L');
+    move_camera('F');
+    //_kits = com.camera('M');
     if (_kits != 9) {
       _lado = 'F';
       return;
     }
 
     //Lado Direito
-    move_camera('E');
-    _kits = com.camera('L');
+    move_camera('D');
+    //_kits = com.camera('R');
     if (_kits != 9) {
       _lado = 'D';
       return;
-    }
+    } else return;
   }
 
   /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
   void resgate(int kits, char lado) {
     int aux = 0;
-    servo_camera.write(36);  //Posicao de repouso
+    int vel = 75;
+    servo_resgate.write(75);  //Posicao de repouso
+    ligaLED_resgate();
 
     //Resgate do lado Esquerdo
     if (lado == 'E')
       while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado direito
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
+
+        //Abre para o lado direito
+        while (vel < 120) {
+          servo_resgate.write(vel);
+          delay(10);
+          vel++;
+        }
+        Serial.println("Abri para a Direita");
+
+        //Posicao de repouso
+        while (vel > 75) {
+          servo_resgate.write(vel);
+          delay(10);
+          vel--;
+        }
         aux++;
+        Serial.println("Fechei");
       }
 
     //Resgate do lado Direito
-    else if (lado == 'E')
+    else if (lado == 'D')
       while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado esquerdo
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
+        
+        //Abre para o lado direito
+        while (vel > 30) {
+          servo_resgate.write(vel);  
+          delay(10);
+          vel--;
+        }
+        Serial.println("Abri para a Esquerda");
+
+        //Posicao de repouso
+        while (vel < 75) {
+          servo_resgate.write(vel);
+          delay(10);
+          vel++;
+        }
         aux++;
+        Serial.println("Fechei");
       }
 
     //Resgate na Frente
@@ -520,16 +548,30 @@ public:
       //Gira o robo para realizar o resgate
       girar(500, 90.0);
 
+
       while (aux < kits) {
-        servo_resgate.write(36);  //Abre para o lado direito
-        delay(100);
-        servo_resgate.write(36);  //Posicao de repouso
+        while (vel > 30) {
+          servo_resgate.write(vel);  //Abre para o lado direito
+          delay(10);
+          vel--;
+        }
+        Serial.println("Abri para a Esquerda");
+
+        while (vel < 75) {
+          servo_resgate.write(vel);  //Posicao de repouso
+          delay(10);
+          vel++;
+        }
         aux++;
+        Serial.println("Fechei");
       }
 
       //Gira para a posicao inicial
       girar(500, -90.0);
     }
+
+    _kits = 9;
+    desligaLED_resgate();
   }
 };
 #endif
