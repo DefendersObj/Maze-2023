@@ -13,7 +13,7 @@ sensor.set_pixformat(sensor.RGB565)
 sensor.set_framesize(sensor.QVGA)
 sensor.set_auto_exposure(False)
 sensor.set_framerate(60)
-sensor.set_windowing((160,160))
+sensor.set_windowing((240,240))
 sensor.set_auto_gain(True)
 sensor.skip_frames(100)
 
@@ -111,7 +111,7 @@ def detection_letter(img, side) -> str:
         else:
             print("Detectei nada")
             return '9'
-        
+
 def max_key(initial_key, victim_counter) -> str:
     max_key = initial_key
     for key in list(victim_counter.keys()):
@@ -127,9 +127,9 @@ while(True):
         print("[DO ARDUINO] Lado: " + side)
         while i < 50:
             for detection in img.find_blobs(threshold_list, merge = True):
-                
-                if detection.area() > 2000 and detection.code() == 1:
-                    print("BURACO") #Discutir com Gabriel
+
+                #if detection.area() > 2000 and detection.code() == 1:
+                #    print("BURACO") #Discutir com Gabriel
 
                 if detection.code() == 2:
                     victim_counter['0'] = victim_counter['0'] + 1
