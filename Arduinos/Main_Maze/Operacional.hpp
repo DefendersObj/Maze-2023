@@ -86,9 +86,27 @@ public:
 
   /*Realiza as movimentacoes da camera*/
   void move_camera(char com) {
-    if (com == 'E') servo_camera.write(140);       //Ajustar
-    else if (com == 'F') servo_camera.write(112);  //Ajustar
-    else if (com == 'D') servo_camera.write(84);   //Ajustar
+
+    //Inicial
+    int vel = 112;
+    servo_camera.write(vel);
+
+    if (com == 'E') {  //140
+      //Esquerdo
+      while (vel < 140) {
+        servo_camera.write(vel);
+        delay(10);
+        vel++;
+      }
+    } else if (com == 'F') servo_camera.write(112);  //Frente
+    else if (com == 'D') {
+      //Direito
+      while (vel > 84) {
+        servo_camera.write(vel);
+        delay(10);
+        vel--;
+      }
+    }
   }
 
   /******************** ANGULO **********************/
@@ -190,6 +208,7 @@ public:
     if (sensores.passos_cm >= trajetoria) {
 
       sensores.zerar_encoder();
+      Serial.println("Troquei pelo Encoder");
       return true;
     } else {
       return false;
@@ -424,38 +443,38 @@ public:
 
   /*! Movimentamos 1 quadrado para Frente e buscamos por vitimas */
   void frente() {
-
-    //Checa se estámos em quadrado azul antes de sair
-    if (cores.buscar() == 'p') delay(5000);
-
+    trajetoria = 20.0;
     sensores.zerar_encoder();
     sensores.zerar_mpu();
     zerar_trajetoria_por_parede();
-
-
 
     //Calcula e orienta uma nova trajetoria
     correcao_trajetoria();
     sensores.zerar_encoder();
 
-
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
 
-      //Saida do preto
-      if (cores.buscar() == 'b') {
-        sensores.zerar_encoder();
-        trajetoria = 10.0;
-        _black_flag = true;
-        while (troca_quadrado() == false) sair_preto();  //Ré
-        return;
+      //Só verifica as cores se não estiver inclindado
+      if (sensores.inclinacao_mpu() <= 80.0) {
+
+        //Saida do preto
+        if (cores.buscar() == 'b') {
+          sensores.zerar_encoder();
+          trajetoria = 8.0;
+          _black_flag = true;
+          Serial.println("Preto");
+          while (troca_quadrado() == false) sair_preto();  //Ré
+          return;
+        }
       }
 
       trajetoria_por_parede();  //Busca mudancas nas paredes laterais
       movimento(500);
-      //Serial.println(sensores.passos_cm);
+      Serial.println(sensores.passos_cm);
     }
 
+    Serial.println("TROQUEI");
     motores.parar();
 
     //Desvira
@@ -464,12 +483,12 @@ public:
     }
   }
 
-
   /*! Busca vitimas com a camera*/
   void buscar_vit() {
 
     //Lado Esquerdo
     move_camera('E');
+    delay(1000);
     _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'E';
@@ -479,19 +498,21 @@ public:
 
     //Frente
     move_camera('F');
-    _kits = com.camera('M');
+    delay(1000);
+    _kits = com.camera('F');
     if (_kits != 9) {
       _lado = 'F';
-       Serial.println("Achei Frente");
+      Serial.println("Achei Frente");
       return;
     }
 
     //Lado Direito
     move_camera('D');
+    delay(1000);
     _kits = com.camera('R');
     if (_kits != 9) {
       _lado = 'D';
-       Serial.println("Achei Direita");
+      Serial.println("Achei Direita");
       return;
     } else return;
   }
@@ -502,7 +523,18 @@ public:
     int vel = 75;
     servo_resgate.write(75);  //Posicao de repouso
     ligaLED_resgate();
-    delay(3000);
+    ligaLED_sinal();
+    delay(1000);
+    desligaLED_resgate();
+    desligaLED_sinal();
+    delay(1000);
+    ligaLED_sinal();
+    ligaLED_resgate();
+    delay(1000);
+    desligaLED_resgate();
+    desligaLED_sinal();
+    delay(1000);
+    ligaLED_sinal();
 
     //Resgate do lado Esquerdo
     if (lado == 'E')
@@ -528,10 +560,10 @@ public:
     //Resgate do lado Direito
     else if (lado == 'D')
       while (aux < kits) {
-        
+
         //Abre para o lado direito
         while (vel > 30) {
-          servo_resgate.write(vel);  
+          servo_resgate.write(vel);
           delay(10);
           vel--;
         }

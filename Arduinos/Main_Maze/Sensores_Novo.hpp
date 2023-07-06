@@ -50,19 +50,19 @@ public:
     dist[4] = esquerda_t.media(5);
     dist[5] = esquerda_f.media(5);
 
-    /*Serial.print("Dist 0:");
-    Serial.println(sensores.dist[0]);
+    Serial.print("Dist 0:");
+    Serial.println(dist[0]);
     Serial.print("Dist 1:");
-    Serial.println(sensores.dist[1]);
+    Serial.println(dist[1]);
     Serial.print("Dist 2:");
-    Serial.println(sensores.dist[2]);
+    Serial.println(dist[2]);
     Serial.print("Dist 3:");
-    Serial.println(sensores.dist[3]);
+    Serial.println(dist[3]);
     Serial.print("Dist 4:");
-    Serial.println(sensores.dist[4]);
+    Serial.println(dist[4]);
     Serial.print("Dist 5:");
-    Serial.println(sensores.dist[5]);
-    Serial.println("------------------");*/
+    Serial.println(dist[5]);
+    Serial.println("------------------");
   }
 
   /*Recebe em um array com o endereço dos sensores que devem ser lidos*/

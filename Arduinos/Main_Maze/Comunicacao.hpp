@@ -40,7 +40,7 @@ public:
   /*Protocolo que envia 1 lado e a OPenMV devolve se existem vitimas*/
   int camera(char lado) {
 
-    String menssagem_cam;
+    char menssagem_cam;
 
     while (Serial2.available()) Serial2.read();  //Limpa a Serial
 
@@ -51,49 +51,72 @@ public:
     char menssagem[] = { lado, end_char };
     Serial2.print(menssagem);
     //Serial.print(menssagem);
-    
+
+    //Recebe a quantidade de kits via Serial2
+    while (1) {
+      if (Serial2.available()) {
+        menssagem_cam = Serial2.read();
+        break;
+      } else {
+        //delay(500);
+        Serial2.print(menssagem);
+        //Serial.print(menssagem);
+        //Serial.println("Esperando Resposta");
+      }
+    }
+
+    //Serial.print("Resposta: ");
+    //Serial.println(menssagem_cam);
+
+    switch (menssagem_cam) {
+      case '0':  //Vítimas mas 0 kits
+        //Serial.println('0');
+        //delay(10000);
+        return 0;
+        break;
+      case '1':  //Vítima com 1 kits
+        //Serial.println('1');
+        //delay(10000);
+        return 1;
+        break;
+      case '2':  //Vítima com 2 kits
+        //Serial.println('2');
+        //delay(10000);
+        return 2;
+        break;
+      case '3':  //Vítima com 3 kits
+        //Serial.println('3');
+        //delay(10000);
+        return 3;
+        break;
+      default:  //Sem vítimas
+        //Serial.println("No victim");
+        //delay(500);
+        return 9;
+        break;
+    }
+  }
+
+  void echo() {
+
+    String menssagem_cam;
+
+    //while (Serial2.available()) Serial2.read();  //Limpa a Serial
 
     //Recebe a quantidade de kits via Serial2
     while (1) {
       if (Serial2.available()) {
         menssagem_cam = Serial2.readStringUntil('\n');
+        Serial2.print(menssagem_cam);
+        Serial.print("Recebido: ");
+        Serial.println(menssagem_cam);
         break;
-      } else {
-        delay(100);
-        Serial2.print(menssagem);
-        Serial.println("Esperando Resposta");
+        // } else {
+        // delay(100);
+        //Serial2.print(menssagem);
+        //Serial.println("Esperando Resposta");
+        //}
       }
-    }
-
-    Serial.print("Resposta: ");
-    Serial.println(menssagem_cam[0]);
-
-    switch (menssagem_cam[0]) {
-      case '0':  //Vítimas mas 0 kits
-        Serial.println('0');
-        delay(10000);
-        return 0;
-        break;
-      case '1':  //Vítima com 1 kits
-        Serial.println('1');
-        delay(10000);
-        return 1;
-        break;
-      case '2':  //Vítima com 2 kits
-        Serial.println('2');
-        delay(10000);
-        return 2;
-        break;
-      case '3':  //Vítima com 3 kits
-        Serial.println('3');
-        delay(10000);
-        return 3;
-        break;
-      default:  //Sem vítimas
-        Serial.println("No victim");
-        delay(500);
-        return 9;
-        break;
     }
   }
 };

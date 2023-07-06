@@ -175,14 +175,14 @@ public:
     }
 
     //Quando encontrar um Checkpoint
-    else if (cores.buscar() == 's') {
+    //else if (cores.buscar() == 's') {
 
       //Atualiza as cordenados do último checkpoint para as atuais
-      _checkpoint_X = X;
-      _checkpoint_Y = Y;
+      //_checkpoint_X = X;
+      //_checkpoint_Y = Y;
       //Varre o mapa e confirma os caminhos anteriores como válidos (Último bit vira 1)*/
-      mapa.consolidacao();
-    }
+      //mapa.consolidacao();
+    //}
 
     //Caso normal
     else
