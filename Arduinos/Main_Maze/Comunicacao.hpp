@@ -121,22 +121,25 @@ public:
   }
 
 
-  char _recebido;
-  char _envio;
+  byte _recebido;
+  byte _envio = 'F';
 
   /*Comunication Between the modules*/
   void conversation() {
 
     //Send signal
-    Serial1.print(_envio);
+    //Serial.print("Sent: ");
+    //Serial1.println(_envio);
+    //Serial.println(_envio);
 
     //Wait for information
     while (1) {
-      if (Serial1.available()) {
+      //Serial.println("Waiting");
+      if (Serial1.available() > 0) {
         _recebido = Serial1.read();
-        Serial.print("Recebi: ");
+        Serial.print("Received: ");
         Serial.println(_recebido);
-        break
+        break;
       }
     }
   }
