@@ -34,10 +34,13 @@ char comando_manual();
 /*!< ************** Setup do Código *******************/
 void setup() {
 
-  delay(1000);
+  //delay(1000);
   Serial.begin(250000);
+  Serial1.begin(9600);
   Serial2.begin(19200);
   Serial3.begin(115200);
+  
+
   cores.begin();
   /*!< Inicializacoes nescessarias >!*/
   op.iniciar();
@@ -57,14 +60,18 @@ void setup() {
 /************ Inicio do Loop *************/
 void loop() {
   //while (1) {
-  //cores.calibrar_todos();
+  //op.resgate(3, 'F');
+  //sdelay(1000);
   //}
-  //while (1) Serial.println(cores.buscar());
-
-  //while (1) sensores.inclinacao_mpu();
-  //while(1)cores.calibrar_todos();
   //while (1) {
-  // Serial.println(cores.buscar());
+    //Serial.println("Comecei");
+    //op.move_camera('E');
+    //Serial.println("Terminei");
+  //}
+  //while (1) sensores.inclinacao_mpu();
+  //while(1)op.buscar_vit();
+  //while (1) {
+  //while (1) Serial.println(cores.buscar());
   // Serial.println("------------------");
   //}
 
@@ -107,7 +114,7 @@ void loop() {
       /*Todo avanço de quadrado dentro do estagio 1 deve ter busca por vítimas*/
       ler_comando(com, true);
 
-      //So entra se nao houverem caminhos novos
+     //So entra se nao houverem caminhos novos
       if (com == 'L') {
 
         /*Estágio 2: Busca pelo ultimo no valido*/

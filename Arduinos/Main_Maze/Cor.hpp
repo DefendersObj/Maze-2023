@@ -132,10 +132,10 @@ public:
     Serial.print("Azul: ");
     Serial.println(_blue);*/
 
-    if (_red >= 0.0 && _red <= 70.0 && _green >= 0.0 && _green <= 70.0 && _blue >= 0.0 && _blue <= 70.0) return 'b';
+    if (_red >= 0.0 && _red <= 90.0 && _green >= 0.0 && _green <= 90.0 && _blue >= 0.0 && _blue <= 90.0) return 'b';
     //else if (_red >= 70.0 && _red <= 350.0 && _green >= 105.0 && _green <= 200.0 && _blue >= 111.0 && _blue <= 220.0) return 'p';
-    else if (_red >= 1000.0 && _red <= 2500.0 && _green >= 1000.0 && _green <= 2500.0 && _blue >= 1000.0 && _blue <= 2500.0) return 's';
-    else if (_red >= 350 && _red <= 1000.0 && _green >= 200.0 && _green <= 1000.0 && _blue >= 220.0 && _blue <= 1000.0) return 'w';
+    //else if (_red >= 1000.0 && _red <= 2500.0 && _green >= 1000.0 && _green <= 2500.0 && _blue >= 1000.0 && _blue <= 2500.0) return 's';
+    //else if (_red >= 350 && _red <= 1000.0 && _green >= 200.0 && _green <= 1000.0 && _blue >= 220.0 && _blue <= 1000.0) return 'w';
     else return 'w';
   }
 };

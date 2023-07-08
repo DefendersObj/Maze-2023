@@ -81,7 +81,7 @@ public:
     //Posicoes iniciais
     servo_frontal.write(36);
     servo_resgate.write(75);
-    servo_camera.write(100);
+    servo_camera.write(112);
   }
 
   /*Realiza as movimentacoes da camera*/
@@ -89,6 +89,7 @@ public:
 
     //Inicial
     int vel = 112;
+
     servo_camera.write(vel);
 
     if (com == 'E') {  //140
@@ -98,7 +99,13 @@ public:
         delay(10);
         vel++;
       }
-    } else if (com == 'F') servo_camera.write(112);  //Frente
+      Serial.println("Movimentei para Esquerda");
+
+    } else if (com == 'F') {
+      servo_camera.write(112);
+      Serial.println("Movimentei para Frente");
+
+    }  //Frente
     else if (com == 'D') {
       //Direito
       while (vel > 84) {
@@ -106,6 +113,7 @@ public:
         delay(10);
         vel--;
       }
+      Serial.println("Movimentei para Direita");
     }
   }
 
@@ -443,7 +451,7 @@ public:
 
   /*! Movimentamos 1 quadrado para Frente e buscamos por vitimas */
   void frente() {
-    trajetoria = 20.0;
+    trajetoria = 18.0;
     sensores.zerar_encoder();
     sensores.zerar_mpu();
     zerar_trajetoria_por_parede();
@@ -458,6 +466,7 @@ public:
       //Só verifica as cores se não estiver inclindado
       if (sensores.inclinacao_mpu() <= 80.0) {
 
+        Serial.println("Lendo");
         //Saida do preto
         if (cores.buscar() == 'b') {
           sensores.zerar_encoder();
@@ -476,6 +485,7 @@ public:
 
     Serial.println("TROQUEI");
     motores.parar();
+    //delay(2000);
 
     //Desvira
     if (correction_angle <= 30.0 && correction_angle >= -30.0) {
@@ -487,18 +497,18 @@ public:
   void buscar_vit() {
 
     //Lado Esquerdo
-    move_camera('E');
+    /*move_camera('E');
     delay(1000);
     _kits = com.camera('L');
     if (_kits != 9) {
       _lado = 'E';
       Serial.println("Achei esquerdo");
       return;
-    }
+    }*/
 
     //Frente
-    move_camera('F');
-    delay(1000);
+    //move_camera('F');
+    //delay(1000);
     _kits = com.camera('F');
     if (_kits != 9) {
       _lado = 'F';
@@ -507,14 +517,14 @@ public:
     }
 
     //Lado Direito
-    move_camera('D');
+    /*move_camera('D');
     delay(1000);
     _kits = com.camera('R');
     if (_kits != 9) {
       _lado = 'D';
       Serial.println("Achei Direita");
       return;
-    } else return;
+    } else return;*/
   }
 
   /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
@@ -534,6 +544,10 @@ public:
     desligaLED_resgate();
     desligaLED_sinal();
     delay(1000);
+    ligaLED_sinal();
+    ligaLED_resgate();
+    delay(1000);
+    desligaLED_resgate();
     ligaLED_sinal();
 
     //Resgate do lado Esquerdo
@@ -582,7 +596,7 @@ public:
     //Resgate na Frente
     else if (lado == 'F') {
       //Gira o robo para realizar o resgate
-      girar(500, 90.0);
+      girar(500, -90.0);
 
       while (aux < kits) {
         while (vel > 30) {
@@ -602,7 +616,7 @@ public:
       }
 
       //Gira para a posicao inicial
-      girar(500, -90.0);
+      girar(500, 90.0);
     }
 
     _kits = 9;

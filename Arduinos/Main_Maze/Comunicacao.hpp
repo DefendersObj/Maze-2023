@@ -119,5 +119,26 @@ public:
       }
     }
   }
+
+
+  char _recebido;
+  char _envio;
+
+  /*Comunication Between the modules*/
+  void conversation() {
+
+    //Send signal
+    Serial1.print(_envio);
+
+    //Wait for information
+    while (1) {
+      if (Serial1.available()) {
+        _recebido = Serial1.read();
+        Serial.print("Recebi: ");
+        Serial.println(_recebido);
+        break
+      }
+    }
+  }
 };
 #endif
