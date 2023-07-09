@@ -45,14 +45,13 @@ void setup() {
 /************ Inicio do Loop *************/
 void loop() {
 
+  while (1) resgate(3);
 
   /*LEDs Ligados enquanto esperam o botão*/
+  //while (1) com.conversation(3);
   op.ligaLED_sinal();
-
-  while (1) com.conversation();
-
   op.ligaLED_resgate();
-  delay(5000);
+  delay(3000);
 
   //Desliga o LED de resgate para a rodada
   op.desligaLED_resgate();
@@ -63,10 +62,58 @@ void loop() {
     Serial.println("Entrei no Loop");
 
     //Lista of pre recorded movements
+    //From Silver to Tile 1
+    comando('F', false);
+    comando('D', false);
+    comando('F', false);
+    comando('D', false);
     comando('F', true);
+    com.conversation(op._kits);
+    op.resgate(com._recebido);
+
+    //From Tile 1 to Tile 2
+    comando('T', false);
+    comando('F', false);
     comando('F', false);
     comando('F', true);
+    com.conversation(op._kits);
+    op.resgate(com._recebido);
+
+    //From Tile 2 to Tile 3
+    comando('T', false);
+    comando('F', false);
+    comando('D', false);
+    comando('F', false);
+    comando('F', false);
+    comando('D', false);
     comando('F', true);
+    com.conversation(op._kits);
+    op.resgate(com._recebido);
+
+    //From Tile 3 to Tile 4
+    comando('T', false);
+    comando('F', false);
+    comando('F', false);
+    comando('F', true);
+    com.conversation(op._kits);
+    op.resgate(com._recebido);
+
+
+    //From Tile 4 to Silver
+    comando('T', false);
+    comando('F', false);
+    comando('D', false);
+    comando('F', false);
+    comando('D', false);
+    comando('F', false);
+    com.conversation(op._kits);
+    op.resgate(com._recebido);
+
+    //Ends the run
+    motores.parar();
+    while (1) op.LED_resgate();
+    motores.parar();
+    //delay(9999999);
   }
 }
 
@@ -77,7 +124,6 @@ void loop() {
 void escolhe_lado() {
   sensores.ler_dist();
   if ((sensores.dist[0] + sensores.dist[1]) / 2) {
-
   }
 }
 
@@ -93,7 +139,7 @@ void comando(char com, bool busca) {
     delay(300);
     if (busca == true) op.buscar_vit();
     op.frente();
-    if (op._kits != 9) op.resgate(op._kits, op._lado);  //Se houver vítimas resgata
+    //if (op._kits != 9) op.resgate(op._kits, op._lado);  //Se houver vítimas resgata
   }
 
   //Giro para Esquerda

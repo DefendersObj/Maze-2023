@@ -193,6 +193,25 @@ public:
     motores.mesma_potencia(-300);
   }
 
+  void LED_resgate() {
+    ligaLED_resgate();
+    ligaLED_sinal();
+    delay(1000);
+    desligaLED_resgate();
+    desligaLED_sinal();
+    delay(1000);
+    ligaLED_sinal();
+    ligaLED_resgate();
+    delay(1000);
+    desligaLED_resgate();
+    desligaLED_sinal();
+    delay(1000);
+    ligaLED_sinal();
+    ligaLED_resgate();
+    delay(1000);
+    desligaLED_resgate();
+    ligaLED_sinal();
+  }
   /*! Espera 5 seg no azul*/
   void espera_azul() {
     motores.parar();
@@ -429,7 +448,7 @@ public:
     Serial.print(" angulo trajetoria: ");
     Serial.println(angulo_trajetoria);
 
-    girar(300, correcao);
+    girar(400, correcao);
   }
 
 
@@ -462,21 +481,6 @@ public:
 
     /*Loop ate a troca de quadrado*/
     while (troca_quadrado() == false) {
-
-      //Só verifica as cores se não estiver inclindado
-      if (sensores.inclinacao_mpu() <= 80.0) {
-
-        Serial.println("Lendo");
-        //Saida do preto
-        if (cores.buscar() == 'b') {
-          sensores.zerar_encoder();
-          trajetoria = 8.0;
-          _black_flag = true;
-          Serial.println("Preto");
-          while (troca_quadrado() == false) sair_preto();  //Ré
-          return;
-        }
-      }
 
       trajetoria_por_parede();  //Busca mudancas nas paredes laterais
       movimento(500);
@@ -528,99 +532,37 @@ public:
   }
 
   /*Distribui os kits nescessarios, recebe o numero de kits e o lado do resgate*/
-  void resgate(int kits, char lado) {
+  void resgate(int kits) {
     int aux = 0;
     int vel = 75;
     servo_resgate.write(75);  //Posicao de repouso
-    ligaLED_resgate();
-    ligaLED_sinal();
-    delay(1000);
-    desligaLED_resgate();
-    desligaLED_sinal();
-    delay(1000);
-    ligaLED_sinal();
-    ligaLED_resgate();
-    delay(1000);
-    desligaLED_resgate();
-    desligaLED_sinal();
-    delay(1000);
-    ligaLED_sinal();
-    ligaLED_resgate();
-    delay(1000);
-    desligaLED_resgate();
-    ligaLED_sinal();
 
-    //Resgate do lado Esquerdo
-    if (lado == 'E')
-      while (aux < kits) {
-        //Abre para o lado direito
-        while (vel < 120) {
-          servo_resgate.write(vel);
-          delay(10);
-          vel++;
-        }
-        Serial.println("Abri para a Direita");
-
-        //Posicao de repouso
-        while (vel > 75) {
-          servo_resgate.write(vel);
-          delay(10);
-          vel--;
-        }
-        aux++;
-        Serial.println("Fechei");
-      }
-
-    //Resgate do lado Direito
-    else if (lado == 'D')
-      while (aux < kits) {
-
-        //Abre para o lado direito
-        while (vel > 30) {
-          servo_resgate.write(vel);
-          delay(10);
-          vel--;
-        }
-        Serial.println("Abri para a Esquerda");
-
-        //Posicao de repouso
-        while (vel < 75) {
-          servo_resgate.write(vel);
-          delay(10);
-          vel++;
-        }
-        aux++;
-        Serial.println("Fechei");
-      }
 
     //Resgate na Frente
-    else if (lado == 'F') {
-      //Gira o robo para realizar o resgate
-      girar(500, -90.0);
+    if (kits) LED_resgate();
 
-      while (aux < kits) {
-        while (vel > 30) {
-          servo_resgate.write(vel);  //Abre para o lado direito
-          delay(10);
-          vel--;
-        }
-        Serial.println("Abri para a Esquerda");
+    //Gira o robo para realizar o resgate
+    girar(500, -90.0);
 
-        while (vel < 75) {
-          servo_resgate.write(vel);  //Posicao de repouso
-          delay(10);
-          vel++;
-        }
-        aux++;
-        Serial.println("Fechei");
+    while (aux < kits) {
+      while (vel > 30) {
+        servo_resgate.write(vel);  //Abre para o lado direito
+        delay(10);
+        vel--;
       }
+      Serial.println("Abri para a Esquerda");
 
-      //Gira para a posicao inicial
-      girar(500, 90.0);
+      while (vel < 75) {
+        servo_resgate.write(vel);  //Posicao de repouso
+        delay(10);
+        vel++;
+      }
+      aux++;
+      Serial.println("Fechei");
     }
 
-    _kits = 9;
-    desligaLED_resgate();
+    //Gira para a posicao inicial
+    girar(500, 90.0);
   }
 };
 #endif

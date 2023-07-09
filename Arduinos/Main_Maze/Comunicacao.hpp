@@ -69,11 +69,6 @@ public:
     //Serial.println(menssagem_cam);
 
     switch (menssagem_cam) {
-      case '0':  //Vítimas mas 0 kits
-        //Serial.println('0');
-        //delay(10000);
-        return 0;
-        break;
       case '1':  //Vítima com 1 kits
         //Serial.println('1');
         //delay(10000);
@@ -89,10 +84,8 @@ public:
         //delay(10000);
         return 3;
         break;
-      default:  //Sem vítimas
-        //Serial.println("No victim");
-        //delay(500);
-        return 9;
+      default:
+        return 0;
         break;
     }
   }
@@ -122,23 +115,27 @@ public:
 
 
   byte _recebido;
-  byte _envio = 'F';
 
   /*Comunication Between the modules*/
-  void conversation() {
+  void conversation(byte kits) {
 
     //Send signal
-    //Serial.print("Sent: ");
-    //Serial1.println(_envio);
-    //Serial.println(_envio);
+    Serial.print("Sent: ");
+    Serial1.write(kits);
+    Serial.println(kits);
 
     //Wait for information
     while (1) {
-      //Serial.println("Waiting");
+      Serial.println("Waiting");
       if (Serial1.available() > 0) {
         _recebido = Serial1.read();
+
         Serial.print("Received: ");
         Serial.println(_recebido);
+        //delay(500);
+
+        //Serial1.write(_recebido);
+        //delay(5000);
         break;
       }
     }
